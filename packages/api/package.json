@@ -1,0 +1,29 @@
+{
+  "name": "@gis-app/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@gis-app/auth": "workspace:*",
+    "@gis-app/db": "workspace:*",
+    "@gis-app/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "@types/pg": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gis-app/config": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "^5"
+  }
+}

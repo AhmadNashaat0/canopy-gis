@@ -1,0 +1,40 @@
+{
+  "name": "gis-app",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @gis-app/db db:push",
+    "db:studio": "turbo -F @gis-app/db db:studio",
+    "db:generate": "turbo -F @gis-app/db db:generate",
+    "db:migrate": "turbo -F @gis-app/db db:migrate",
+    "db:start": "turbo -F @gis-app/db db:start",
+    "db:watch": "turbo -F @gis-app/db db:watch",
+    "db:stop": "turbo -F @gis-app/db db:stop",
+    "db:down": "turbo -F @gis-app/db db:down",
+    "check": "oxlint && oxfmt --write"
+  },
+  "dependencies": {
+    "@gis-app/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gis-app/config": "workspace:*",
+    "@types/node": "catalog:",
+    "lefthook": "^2.0.13",
+    "oxfmt": "^0.26.0",
+    "oxlint": "^1.41.0",
+    "turbo": "^2.8.12",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

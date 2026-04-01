@@ -1,0 +1,24 @@
+{
+  "name": "@gis-app/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@gis-app/db": "workspace:*",
+    "@gis-app/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gis-app/config": "workspace:*",
+    "typescript": "^5"
+  }
+}
