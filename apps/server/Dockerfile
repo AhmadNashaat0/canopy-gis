@@ -17,7 +17,7 @@ COPY --from=pruner /app/out/json/ ./
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ ./
-RUN pnpm run compile:server
+RUN pnpm run build:server
 
 # Runner (minimal)
 FROM gcr.io/distroless/base-debian12 AS runner
