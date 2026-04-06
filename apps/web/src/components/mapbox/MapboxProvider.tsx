@@ -1,0 +1,125 @@
+import * as React from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { env } from "@gis-app/env/web";
+import { MapboxContext } from "./MapboxContext";
+
+export type MapboxProviderProps = {
+  mapOptions?: Omit<mapboxgl.MapOptions, "container" | "style">;
+  controls?: {
+    navigation?: boolean;
+    fullscreen?: boolean;
+    scale?: boolean;
+    geolocate?: boolean;
+  };
+  fitBounds?: mapboxgl.LngLatBoundsLike;
+  fitBoundsOptions?: mapboxgl.MapOptions["fitBoundsOptions"];
+  onMapReady?: (map: mapboxgl.Map) => void;
+  onMapError?: (error: unknown) => void;
+  children?: React.ReactNode;
+  sidePanel?: React.ReactNode;
+  className?: string;
+};
+
+export function MapboxProvider({
+  mapOptions,
+  controls = { navigation: true, fullscreen: true, scale: false, geolocate: false },
+  fitBounds,
+  fitBoundsOptions,
+  onMapReady,
+  onMapError,
+  children,
+  sidePanel,
+}: MapboxProviderProps) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const mapRef = React.useRef<mapboxgl.Map | null>(null);
+  const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+
+    mapboxgl.accessToken = env.VITE_MAPBOX_TOKEN;
+    const mapInstance = new mapboxgl.Map({
+      container: containerRef.current,
+      ...mapOptions,
+    });
+
+    mapRef.current = mapInstance;
+    setMap(mapInstance);
+    onMapReady?.(mapInstance);
+
+    const onError = (e: unknown) => onMapError?.(e);
+    mapInstance.on("error", onError);
+
+    const navigationControl = controls.navigation ? new mapboxgl.NavigationControl() : null;
+    const fullscreenControl = controls.fullscreen ? new mapboxgl.FullscreenControl() : null;
+    const scaleControl = controls.scale ? new mapboxgl.ScaleControl() : null;
+    const geolocateControl = controls.geolocate ? new mapboxgl.GeolocateControl({}) : null;
+
+    if (navigationControl) mapInstance.addControl(navigationControl, "top-right");
+    if (fullscreenControl) mapInstance.addControl(fullscreenControl, "top-right");
+    if (scaleControl) mapInstance.addControl(scaleControl, "bottom-left");
+    if (geolocateControl) mapInstance.addControl(geolocateControl, "top-right");
+
+    // Keep map canvas sized correctly.
+    const ro = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+    ro.observe(containerRef.current);
+
+    const maybeFitBounds = () => {
+      if (!fitBounds) return;
+      try {
+        mapInstance.fitBounds(fitBounds, fitBoundsOptions);
+      } catch {
+        // Ignore fit errors when bounds are invalid.
+      }
+    };
+
+    const onLoad = () => {
+      maybeFitBounds();
+      // First paint sometimes happens before layout is final; resize fixes a blank canvas.
+      mapInstance.resize();
+      requestAnimationFrame(() => {
+        mapInstance.resize();
+      });
+    };
+
+    mapInstance.on("load", onLoad);
+
+    return () => {
+      mapInstance.off("load", onLoad);
+      mapInstance.off("error", onError);
+      mapInstance.remove();
+      mapRef.current = null;
+      setMap(null);
+      ro.disconnect();
+    };
+  }, [env.VITE_MAPBOX_TOKEN]);
+
+  React.useEffect(() => {
+    if (!mapRef.current) return;
+    if (!fitBounds) return;
+
+    const doFit = () => {
+      try {
+        mapRef.current?.fitBounds(fitBounds, fitBoundsOptions);
+      } catch {
+        // Ignore fit errors when bounds are invalid.
+      }
+    };
+
+    if (mapRef.current.isStyleLoaded()) doFit();
+    else mapRef.current.once("load", doFit);
+  }, [fitBounds, fitBoundsOptions]);
+
+  return (
+    <div className={"relative w-full h-full flex flex-col gap-4"}>
+      {map ? <MapboxContext.Provider value={{ map }}>{children}</MapboxContext.Provider> : null}
+      <div className="flex gap-0 h-full w-full rounded-md overflow-hidden border">
+        {sidePanel && <div className="h-full w-74 border-e overflow-y-auto">{sidePanel}</div>}
+        <div ref={containerRef} className="h-full w-full" />
+      </div>
+    </div>
+  );
+}

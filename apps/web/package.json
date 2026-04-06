@@ -26,6 +26,7 @@
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "lucide-react": "catalog:",
+    "mapbox-gl": "3.21.0",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}

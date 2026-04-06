@@ -29,7 +29,7 @@
   "devDependencies": {
     "@gis-app/config": "workspace:*",
     "@types/pg": "catalog:",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5"
   }
 }
