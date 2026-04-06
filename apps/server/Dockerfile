@@ -20,10 +20,10 @@ COPY --from=pruner /app/out/full/ ./
 RUN pnpm run build:server
 
 # Runner (minimal)
-FROM gcr.io/distroless/base-debian12 AS runner
+FROM node:20-slim  AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/server/server ./apps/server
+COPY --from=builder /app/apps/server/dist ./apps/server
 WORKDIR /app/apps
 EXPOSE 3000
-CMD ["./server"]
+CMD ["node", "./server/index.mjs"]
