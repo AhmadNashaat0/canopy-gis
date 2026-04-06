@@ -1,0 +1,65 @@
+name: Deploy Web
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/web/**"
+      - "packages/api/**"
+      - "packages/auth/**"
+      - "packages/env/**"
+      - "packages/config/**"
+      - "packages/ui/**"
+      - ".github/workflows/web-deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web app
+        run: bun run build:web
+        env:
+          VITE_SERVER_URL: ${{ secrets.SERVER_URL }}
+          VITE_MAPBOX_TOKEN: ${{secrets.VITE_MAPBOX_TOKEN}}
+
+      - name: Clean folder on server before copying output
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            rm -rf /var/www/canopy-gis-web/*
+
+      - name: Copy Build Files to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "./apps/web/dist/*"
+          target: "/var/www/canopy-gis-web/"
+
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo systemctl restart nginx

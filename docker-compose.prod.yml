@@ -1,0 +1,16 @@
+name: canopy-gis-prod
+
+services:
+  server:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/canopy-gis-server-prod:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      DATABASE_URL: ${DATABASE_URL}
+    restart: always
+    ports:
+      - "3000:3000"
