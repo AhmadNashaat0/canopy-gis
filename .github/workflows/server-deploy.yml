@@ -19,7 +19,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: canopy-gis-server
+  IMAGE_NAME: canopy-gis-server-prod
 
 jobs:
   build-and-push:
