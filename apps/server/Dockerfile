@@ -1,5 +1,5 @@
 # Base
-FROM node:20-slim AS base
+FROM node:24-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -10,22 +10,14 @@ FROM base AS pruner
 COPY . .
 RUN pnpm dlx turbo prune server --docker
 
-# Builder
 FROM base AS builder
+ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=pruner /app/out/json/ ./
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ ./
 RUN pnpm run build:server
-
-# Runner (minimal)
-FROM node:20-slim  AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/apps/server/dist ./apps/server/dist
-COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
-COPY --from=builder /app/apps/server/package.json ./apps/server
 WORKDIR /app/apps/server
 EXPOSE 3000
-CMD ["node", "dist/index.mjs"]
+CMD ["pnpm", "start"]
