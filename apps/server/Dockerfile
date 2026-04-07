@@ -26,6 +26,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
 COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
 COPY --from=builder /app/apps/server/package.json ./apps/server
-WORKDIR /app/apps
+WORKDIR /app/apps/server
 EXPOSE 3000
-CMD ["node", "./server/dist/index.mjs"]
+CMD ["node", "dist/index.mjs"]
