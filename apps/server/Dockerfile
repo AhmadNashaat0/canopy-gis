@@ -23,7 +23,9 @@ RUN pnpm run build:server
 FROM node:20-slim  AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/server/dist ./apps/server
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
+COPY --from=builder /app/apps/server/package.json ./apps/server
 WORKDIR /app/apps
 EXPOSE 3000
-CMD ["node", "./server/index.mjs"]
+CMD ["node", "./server/dist/index.mjs"]
