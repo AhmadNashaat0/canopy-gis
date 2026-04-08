@@ -15,7 +15,6 @@ export const propertiesRouter = router({
         yearBuilt: gisProperties.yearBuilt,
         address: gisProperties.addressText,
         areaInSqFt: gisProperties.totalSf,
-        // Access columns from the lateral alias 'latest_sale'
         lastPrice: sql<string | null>`latest_sale.sale_price`,
         lastPriceDate: sql<string | null>`latest_sale.sale_date`,
       })
