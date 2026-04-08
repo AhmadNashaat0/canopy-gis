@@ -28,7 +28,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
+      - name: log env
+        run: echo ${{ secrets.MAPBOX_TOKEN }} ${{ secrets.SERVER_URL }}
       - name: Build web app
         run: pnpm run build:web
         env:
