@@ -33,7 +33,7 @@ jobs:
         run: pnpm run build:web
         env:
           VITE_SERVER_URL: ${{ secrets.SERVER_URL }}
-          VITE_MAPBOX_TOKEN: ${{secrets.MAPBOX_TOKEN}}
+          VITE_MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
 
       - name: Clean folder on server before copying output
         uses: appleboy/ssh-action@v1.1.0
