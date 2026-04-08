@@ -125,16 +125,7 @@ export function PropertyPreviewLayers({
           type: "circle",
           source: SOURCE_ID,
           paint: {
-            "circle-radius": {
-              property: "dbh",
-              type: "exponential",
-              stops: [
-                [8, 5],
-                [9, 10],
-                [12, 20],
-                [16, 50],
-              ],
-            },
+            "circle-radius": 6,
             "circle-color": "black",
             "circle-stroke-color": "white",
             "circle-stroke-width": {
@@ -164,10 +155,10 @@ export function PropertyPreviewLayers({
             ? ["==", ["get", "id"], selectedProperty.id]
             : ["==", ["get", "id"], "__none__"],
           paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 3, 10, 8, 16, 14],
-            "circle-color": selectedPinColor,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "rgba(17,24,39,0.95)",
+            "circle-radius": 6,
+            "circle-color": "black",
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "white",
             "circle-opacity": 1,
           },
           layout: {
@@ -217,7 +208,10 @@ export function PropertyPreviewLayers({
         .setHTML(
           `<div style="font-size:13px;line-height:1.3;color:black" className="text-foreground bg-background">
             <div style="font-weight:600">${escapeHtml(property.name ?? "")}</div>
-            <div>Last price: ${escapeHtml(formatNumberOrDash(Number(property.lastPrice)))}</div>
+            <div>Built year: ${escapeHtml(escapeHtml(String(property.yearBuilt)))}</div>
+            <div>Area (sqft): ${escapeHtml(formatNumberOrDash(Number(property.areaInSqFt)))}</div>
+            <div style="display:${property.lastPriceDate ? "block" : "none"};">Last price: ${escapeHtml(formatNumberOrDash(Number(property.lastPrice)))}</div>
+            <div style="display:${property.lastPriceDate ? "block" : "none"};">Last price Date: ${escapeHtml(property.lastPriceDate ?? "")}</div>
           </div>`,
         )
         .addTo(map);
@@ -242,11 +236,7 @@ export function PropertyPreviewLayers({
       map.once("style.load", ensureSourceAndLayers);
     }
 
-    // Keep layers in sync if the parent updates style (setStyle removes layers).
     map.on("style.load", ensureSourceAndLayers);
-
-    // Bind interaction handlers. Rebinding is safe because we rebind on each effect
-    // with a cleanup that removes handlers.
     map.on("click", PINS_LAYER_ID, onPinsClick);
     map.on("mouseenter", PINS_LAYER_ID, onPinsMouseEnter);
     map.on("mousemove", PINS_LAYER_ID, onPinsMouseMove);
