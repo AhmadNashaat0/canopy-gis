@@ -1,23 +1,9 @@
 import type { AppRouter } from "@gis-app/api/routers/index";
 import { env } from "@gis-app/env/web";
-import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import { toast } from "sonner";
-
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      toast.error(error.message, {
-        action: {
-          label: "retry",
-          onClick: query.invalidate,
-        },
-      });
-    },
-  }),
-});
+import { queryClient } from "./react-query";
 
 export const trpcClient = createTRPCClient<AppRouter>({
   links: [

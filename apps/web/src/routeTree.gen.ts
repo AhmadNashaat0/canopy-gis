@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AppAdminRouteImport } from './routes/_app/_admin'
+import { Route as AppAdminUsersIndexRouteImport } from './routes/_app/_admin/users/index'
 
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/_app/',
@@ -22,29 +24,48 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/_app/_admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAdminUsersIndexRoute = AppAdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
+  '/login': typeof AuthLoginRoute
+  '/users/': typeof AppAdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
+  '/login': typeof AuthLoginRoute
+  '/users': typeof AppAdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_app/_admin': typeof AppAdminRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/_admin/users/': typeof AppAdminUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/login' | '/'
+  fullPaths: '/' | '/login' | '/users/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/'
-  id: '__root__' | '/_auth/login' | '/_app/'
+  to: '/' | '/login' | '/users'
+  id:
+    | '__root__'
+    | '/_app/_admin'
+    | '/_auth/login'
+    | '/_app/'
+    | '/_app/_admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AppAdminRoute: typeof AppAdminRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -65,10 +86,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/_admin': {
+      id: '/_app/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/_admin/users/': {
+      id: '/_app/_admin/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof AppAdminUsersIndexRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
   }
 }
 
+interface AppAdminRouteChildren {
+  AppAdminUsersIndexRoute: typeof AppAdminUsersIndexRoute
+}
+
+const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminUsersIndexRoute: AppAdminUsersIndexRoute,
+}
+
+const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
+  AppAdminRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
+  AppAdminRoute: AppAdminRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
   AppIndexRoute: AppIndexRoute,
 }

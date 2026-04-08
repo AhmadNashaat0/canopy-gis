@@ -3,7 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import type { trpc } from "@/utils/trpc";
+import type { trpc } from "@/lib/trpc";
 
 import "../index.css";
 
@@ -47,7 +47,7 @@ function RootComponent() {
           {/* <Header /> */}
           <Outlet />
         </div>
-        <Toaster richColors />
+        <Toaster />
       </ThemeProvider>
     </>
   );

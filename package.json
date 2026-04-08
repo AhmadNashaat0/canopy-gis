@@ -22,7 +22,8 @@
     "db:watch": "turbo -F @gis-app/db db:watch",
     "db:stop": "turbo -F @gis-app/db db:stop",
     "db:down": "turbo -F @gis-app/db db:down",
-    "check": "oxlint && oxfmt --write"
+    "check": "oxlint && oxfmt --write",
+    "seed:users": "turbo -F @gis-app/api seed:users"
   },
   "dependencies": {
     "@gis-app/env": "workspace:*",

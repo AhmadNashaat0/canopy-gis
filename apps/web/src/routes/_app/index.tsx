@@ -1,5 +1,5 @@
 import { PropertyPreviewMap } from "@/components/mapbox";
-import { trpc, type RouterOutput } from "@/utils/trpc";
+import { trpc, type RouterOutput } from "@/lib/trpc";
 import { Skeleton } from "@gis-app/ui/components/skeleton";
 import {
   SidebarGroup,

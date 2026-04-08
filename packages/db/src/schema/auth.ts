@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, integer } from "drizzle-orm/pg-core";
+
+export const rolesList = ["user", "admin"] as const;
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -12,6 +14,12 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  role: text("role", { enum: rolesList }).default("user").notNull(),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
+  isActive: boolean("is_active").default(true).notNull(),
+  loginCount: integer("login_count").default(0).notNull(),
 });
 
 export const session = pgTable(
