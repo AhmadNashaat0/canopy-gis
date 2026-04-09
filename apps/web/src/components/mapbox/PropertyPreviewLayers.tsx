@@ -1,7 +1,7 @@
 import * as React from "react";
 import mapboxgl from "mapbox-gl";
 import { useMapbox } from "./MapboxContext";
-import type { Property } from "@/routes/_app";
+import type { Property } from "@/routes/_app/index";
 
 const SOURCE_ID = "properties-source";
 const PINS_LAYER_ID = "properties-pins";

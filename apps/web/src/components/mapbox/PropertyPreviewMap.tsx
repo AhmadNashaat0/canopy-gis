@@ -3,7 +3,7 @@ import { MapboxProvider } from "./MapboxProvider";
 import { PropertyPreviewLayers } from "./PropertyPreviewLayers";
 import { useMapbox } from "./MapboxContext";
 import { cn } from "@gis-app/ui/lib/utils";
-import type { Property } from "@/routes/_app";
+import type { Property } from "@/routes/_app/index";
 
 function getBoundsFromProperties(
   properties: Property[],

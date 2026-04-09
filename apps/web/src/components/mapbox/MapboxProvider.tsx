@@ -1,9 +1,15 @@
-import * as React from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchBox } from "@mapbox/search-js-react";
 import { env } from "@gis-app/env/web";
 import { MapboxContext } from "./MapboxContext";
+import { Tabs, TabsList, TabsTrigger } from "@gis-app/ui/components/tabs";
 import "mapbox-gl/dist/mapbox-gl.css";
+
+const styles = {
+  standard: "mapbox://styles/mapbox/standard",
+  satellite: "mapbox://styles/mapbox/standard-satellite",
+};
 
 export type MapboxProviderProps = {
   mapOptions?: Omit<mapboxgl.MapOptions, "container" | "style">;
@@ -17,7 +23,7 @@ export type MapboxProviderProps = {
   fitBoundsOptions?: mapboxgl.MapOptions["fitBoundsOptions"];
   onMapReady?: (map: mapboxgl.Map) => void;
   onMapError?: (error: unknown) => void;
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 };
 
@@ -30,16 +36,18 @@ export function MapboxProvider({
   onMapError,
   children,
 }: MapboxProviderProps) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const mapRef = React.useRef<mapboxgl.Map | null>(null);
-  const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [currentStyle, setCurrentStyle] = useState(styles.standard);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!containerRef.current) return;
 
     mapboxgl.accessToken = env.VITE_MAPBOX_TOKEN;
     const mapInstance = new mapboxgl.Map({
       container: containerRef.current,
+      style: currentStyle,
       ...mapOptions,
     });
 
@@ -96,7 +104,7 @@ export function MapboxProvider({
     };
   }, [env.VITE_MAPBOX_TOKEN]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current) return;
     if (!fitBounds) return;
     const doFit = () => {
@@ -109,6 +117,12 @@ export function MapboxProvider({
     doFit();
   }, [fitBounds, fitBoundsOptions]);
 
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setStyle(currentStyle);
+    }
+  }, [currentStyle]);
+
   return (
     <div className={"relative w-full h-full flex flex-col gap-4"}>
       {map ? <MapboxContext.Provider value={{ map }}>{children}</MapboxContext.Provider> : null}
@@ -120,8 +134,28 @@ export function MapboxProvider({
             map={map}
             mapboxgl={mapboxgl}
             marker={true}
+            theme={{
+              cssText:
+                ".Input{color:var(--foreground)!important;} .Input:focus{border:1px solid var(--border)!important;}",
+              variables: {
+                colorBackground: "var(--input)",
+                colorBackgroundHover: "var(--secondary)",
+                colorBackgroundActive: "var(--secondary)",
+                colorText: "var(--foreground)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)",
+              },
+            }}
           />
         )}
+      </div>
+      <div className="absolute z-10 bottom-[10px] left-[10px] w-64">
+        <Tabs defaultValue={currentStyle} onValueChange={(value) => setCurrentStyle(value)}>
+          <TabsList>
+            <TabsTrigger value={styles.standard}>Standard</TabsTrigger>
+            <TabsTrigger value={styles.satellite}>Satellite</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
     </div>
   );

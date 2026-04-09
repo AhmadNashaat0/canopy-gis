@@ -14,6 +14,9 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-svh md:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div>
+          <img src="/logo.png" alt="Canopy Logo" className="h-10 w-auto" />
+        </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-md -translate-y-1/6 md:translate-y-0">
             <LoginForm />
@@ -21,7 +24,9 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="hidden p-4 md:block">
-        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-2xl bg-secondary px-3"></div>
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-2xl bg-custom-primary px-3">
+          <img src="/text-logo.avif" alt="Canopy Text Logo" className="h-20" />
+        </div>
       </div>
     </div>
   );

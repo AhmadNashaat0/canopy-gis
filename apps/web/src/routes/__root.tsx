@@ -17,11 +17,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
       {
-        title: "gis-app",
+        title: "Canopy GIS",
       },
       {
         name: "description",
-        content: "gis-app is a web application",
+        content: "canopy-gis is the geospatial application for the Canopy project",
       },
     ],
     links: [
@@ -43,10 +43,7 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
-          {/* <Header /> */}
-          <Outlet />
-        </div>
+        <Outlet />
         <Toaster />
       </ThemeProvider>
     </>

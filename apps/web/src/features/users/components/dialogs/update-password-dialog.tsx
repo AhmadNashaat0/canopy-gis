@@ -33,7 +33,7 @@ export function UpdatePasswordDialog({
         <TooltipTrigger render={<DialogTrigger render={children} />} />
         {tooltipContent && <TooltipContent>{tooltipContent}</TooltipContent>}
       </Tooltip>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader className="flex items-center justify-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
             <Key className="size-5 text-orange-600 dark:text-orange-300" />

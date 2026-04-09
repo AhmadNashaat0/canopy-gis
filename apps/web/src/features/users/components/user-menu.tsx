@@ -4,6 +4,7 @@ import { Button } from "@gis-app/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@gis-app/ui/components/popover";
 import { SidebarMenuButton } from "@gis-app/ui/components/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { ThemeDropdownMenu } from "@/components/theme/theme-dropdown-menu";
 
 export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) {
   const { data } = authClient.useSession();
@@ -16,14 +17,12 @@ export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) 
       <PopoverTrigger
         render={
           isCombact ? (
-            <Button className="h-auto p-0 hover:bg-transparent" variant="ghost">
-              <Avatar>
-                <AvatarImage alt="Profile image" src={user.image ?? ""} />
-                <AvatarFallback className="border bg-primary text-primary-foreground uppercase">
-                  {`${user.name.split(" ")[0][0]}${user.name.split(" ")[1][0]}`}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
+            <Avatar>
+              <AvatarImage alt="Profile image" src={user.image ?? ""} />
+              <AvatarFallback className="border bg-primary text-primary-foreground uppercase">
+                {`${user.name.split(" ")[0][0]}${user.name.split(" ")[1][0]}`}
+              </AvatarFallback>
+            </Avatar>
           ) : (
             <SidebarMenuButton size="lg">
               <Avatar className="h-8 w-8 rounded-lg">
@@ -43,11 +42,11 @@ export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) 
           )
         }
       />
-      <PopoverContent align="start" className="w-42 p-0">
-        <div className="flex w-full items-center justify-start gap-2 px-4 py-3">
-          <Avatar className="rounded-md">
+      <PopoverContent align="start" className="max-w-48 p-0 gap-0">
+        <div className="flex w-full items-center justify-start gap-2 p-3">
+          <Avatar>
             <AvatarImage alt="Profile image" src={user.image ?? ""} />
-            <AvatarFallback className="rounded-md border bg-primary text-primary-foreground uppercase">
+            <AvatarFallback className="border bg-primary text-primary-foreground uppercase">
               {`${user.name.split(" ")[0][0]}${user.name.split(" ")[1][0]}`}
             </AvatarFallback>
           </Avatar>
@@ -56,17 +55,14 @@ export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) 
             <span className="truncate font-normal text-muted-foreground text-xs">{user.email}</span>
           </div>
         </div>
-        {/* <div className="border-t">
-          <div className="h-10">
-            <LocaleDropdownMenu />
-          </div>
+        <div className="border-t">
           <div className="h-10">
             <ThemeDropdownMenu />
           </div>
-        </div> */}
+        </div>
         <div className="border-t">
           <Button
-            className="group h-full w-full justify-start px-4 py-2 font-normal capitalize"
+            className="group h-full w-full justify-start px-3 py-2 font-normal capitalize"
             onClick={() => authClient.signOut()}
             variant="ghost"
           >

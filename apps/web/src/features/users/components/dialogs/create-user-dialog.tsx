@@ -30,10 +30,10 @@ export function CreateUserDialog({
         <TooltipTrigger render={<DialogTrigger render={children} />} />
         {tooltipContent && <TooltipContent>{tooltipContent}</TooltipContent>}
       </Tooltip>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Create User</DialogTitle>
-          <DialogDescription>Create a new user</DialogDescription>
+          <DialogDescription>Create a user account for Canopy GIS</DialogDescription>
         </DialogHeader>
         <UserForm closeFn={() => setOpen(false)} userMutate={userMutate} />
       </DialogContent>

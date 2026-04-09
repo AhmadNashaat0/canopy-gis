@@ -46,7 +46,7 @@ function PropertiesRoute() {
   );
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="min-h-full h-full">
       <Sidebar className="sticky h-full bg-background">
         <SidebarHeader className="border-b">
           <BasicCombobox

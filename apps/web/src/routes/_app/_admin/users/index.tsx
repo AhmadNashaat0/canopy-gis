@@ -12,9 +12,9 @@ export const Route = createFileRoute("/_app/_admin/users/")({
 function RouteComponent() {
   const { data, isLoading } = getUsers.useQuery();
   return (
-    <main>
-      <header className="border-b">
-        <div className="flex gap-2 items-center justify-between max-w-7xl mx-auto  p-2">
+    <main className="max-w-7xl mx-auto border-x h-full">
+      <header>
+        <div className="flex gap-2 items-center justify-between border-b px-3 py-2">
           <div className="flex gap-4 items-center flex-1">
             <div className="hidden size-10 shrink-0 items-center justify-center rounded-lg border bg-card sm:flex">
               <Users className="size-4.5 opacity-60" />
@@ -35,7 +35,7 @@ function RouteComponent() {
           </CreateUserDialog>
         </div>
       </header>
-      <div className="flex-1 px-2 py-4 max-w-7xl mx-auto">
+      <div className="flex-1 px-3 py-4">
         <UsersTable data={data?.items ?? []} isLoading={isLoading} />
       </div>
     </main>

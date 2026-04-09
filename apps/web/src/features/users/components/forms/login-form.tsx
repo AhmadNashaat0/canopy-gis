@@ -32,7 +32,7 @@ export function LoginForm() {
         },
         {
           onSuccess: () => {
-            toast.success("🎉 Login successful", {
+            toast.success("You are now logged in!", {
               icon: "🎉",
               position: "bottom-right",
             });
