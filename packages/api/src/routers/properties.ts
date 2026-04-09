@@ -1,7 +1,7 @@
 import { db } from "@gis-app/db";
 import { gisProperties } from "@gis-app/db/schema/gis";
 import { router, publicProcedure } from "../index";
-import { and, eq, gte, lte, SQL, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lte, SQL, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const getAllInputSchema = z.object({
@@ -9,11 +9,11 @@ const getAllInputSchema = z.object({
   size: z.number().optional().default(1000),
   yearBuiltStart: z.number().optional(),
   yearBuiltEnd: z.number().optional(),
-  buildingClass: z.string().optional(),
-  locationClass: z.string().optional(),
-  propertyType: z.string().optional(),
-  market: z.string().optional(),
-  submarket: z.string().optional(),
+  buildingClass: z.string().optional().nullable(),
+  locationClass: z.string().optional().nullable(),
+  propertyType: z.string().optional().nullable(),
+  market: z.string().optional().nullable(),
+  submarket: z.string().optional().nullable(),
 });
 
 export const propertiesRouter = router({
@@ -48,20 +48,28 @@ export const propertiesRouter = router({
       whereClauses.push(lte(gisProperties.yearBuilt, input.yearBuiltEnd));
     }
 
-    if (input.market) {
+    if (input.market && input.market != "") {
       whereClauses.push(eq(gisProperties.market, input.market));
+    } else if (input.market === null) {
+      whereClauses.push(isNull(gisProperties.market));
     }
 
-    if (input.buildingClass) {
+    if (input.buildingClass && input.buildingClass != "") {
       whereClauses.push(eq(gisProperties.buildingClass, input.buildingClass));
+    } else if (input.buildingClass === null) {
+      whereClauses.push(isNull(gisProperties.buildingClass));
     }
 
-    if (input.locationClass) {
+    if (input.locationClass && input.locationClass != "") {
       whereClauses.push(eq(gisProperties.locationClass, input.locationClass));
+    } else if (input.locationClass === null) {
+      whereClauses.push(isNull(gisProperties.locationClass));
     }
 
-    if (input.propertyType) {
+    if (input.propertyType && input.propertyType != "") {
       whereClauses.push(eq(gisProperties.propertyType, input.propertyType));
+    } else if (input.propertyType === null) {
+      whereClauses.push(isNull(gisProperties.propertyType));
     }
 
     const items = await db
@@ -90,7 +98,7 @@ export const propertiesRouter = router({
       .where(and(...whereClauses))
       .limit(input.size)
       .offset((input.page - 1) * input.size);
-    const totals = await db.$count(gisProperties, ...whereClauses);
+    const totals = await db.$count(gisProperties, and(...whereClauses));
     return {
       items,
       totals,

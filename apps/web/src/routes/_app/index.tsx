@@ -28,27 +28,23 @@ export type Property = RouterOutput["properties"]["getAll"]["items"][number];
 function PropertiesRoute() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<string | undefined>("McAllen, TX");
-  const [selectedBuildingClass, setSelectedBuildingClass] = useState<string | undefined>();
-  const [selectedLocationClass, setSelectedLocationClass] = useState<string | undefined>();
-  const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>();
+  const [selectedBuildingClass, setSelectedBuildingClass] = useState<string | undefined>("");
+  const [selectedLocationClass, setSelectedLocationClass] = useState<string | undefined>("");
+  const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>("");
 
   const { data: filters, isLoading: isFiltersLoading } = useQuery(
     trpc.properties.getPropertiesFilters.queryOptions(),
   );
 
   const { data: properties, isLoading: isPropertiesLoading } = useQuery(
-    trpc.properties.getAll.queryOptions(
-      {
-        market: selectedMarket,
-        buildingClass: selectedBuildingClass,
-        locationClass: selectedLocationClass,
-        propertyType: selectedPropertyType,
-      },
-      {
-        enabled: !!selectedMarket,
-      },
-    ),
+    trpc.properties.getAll.queryOptions({
+      market: selectedMarket,
+      buildingClass: selectedBuildingClass,
+      locationClass: selectedLocationClass,
+      propertyType: selectedPropertyType,
+    }),
   );
+
   return (
     <SidebarProvider>
       <Sidebar className="sticky h-full bg-background">
@@ -110,7 +106,7 @@ function PropertiesRoute() {
         <SidebarFooter className="border-t">
           <div className="flex gap-2 text-muted-foreground text-sm justify-between">
             <p>Properties</p>
-            <p className="flex gap-1">
+            <div className="flex gap-1">
               {isPropertiesLoading ? (
                 <Skeleton className="h-4 w-6" />
               ) : (
@@ -118,7 +114,7 @@ function PropertiesRoute() {
               )}
               {" / "}
               {isPropertiesLoading ? <Skeleton className="h-4 w-6" /> : properties?.totals}
-            </p>
+            </div>
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -150,15 +146,12 @@ function PropertiesRoute() {
           )}
         </div>
         <div className="p-2 size-full">
-          {isPropertiesLoading ? (
-            <Skeleton className="h-full rounded-lg" />
-          ) : (
-            <PropertyPreviewMap
-              properties={properties?.items ?? []}
-              selectedProperty={selectedProperty}
-              setSelectedProperty={setSelectedProperty}
-            />
-          )}
+          <PropertyPreviewMap
+            properties={properties?.items ?? []}
+            isLoading={isPropertiesLoading}
+            selectedProperty={selectedProperty}
+            setSelectedProperty={setSelectedProperty}
+          />
         </div>
       </main>
     </SidebarProvider>

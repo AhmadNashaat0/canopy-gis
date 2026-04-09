@@ -1,8 +1,9 @@
 import * as React from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { SearchBox } from "@mapbox/search-js-react";
 import { env } from "@gis-app/env/web";
 import { MapboxContext } from "./MapboxContext";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 export type MapboxProviderProps = {
   mapOptions?: Omit<mapboxgl.MapOptions, "container" | "style">;
@@ -17,7 +18,6 @@ export type MapboxProviderProps = {
   onMapReady?: (map: mapboxgl.Map) => void;
   onMapError?: (error: unknown) => void;
   children?: React.ReactNode;
-  sidePanel?: React.ReactNode;
   className?: string;
 };
 
@@ -29,7 +29,6 @@ export function MapboxProvider({
   onMapReady,
   onMapError,
   children,
-  sidePanel,
 }: MapboxProviderProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<mapboxgl.Map | null>(null);
@@ -100,7 +99,6 @@ export function MapboxProvider({
   React.useEffect(() => {
     if (!mapRef.current) return;
     if (!fitBounds) return;
-
     const doFit = () => {
       try {
         mapRef.current?.fitBounds(fitBounds, fitBoundsOptions);
@@ -108,17 +106,22 @@ export function MapboxProvider({
         // Ignore fit errors when bounds are invalid.
       }
     };
-
-    if (mapRef.current.isStyleLoaded()) doFit();
-    else mapRef.current.once("load", doFit);
+    doFit();
   }, [fitBounds, fitBoundsOptions]);
 
   return (
     <div className={"relative w-full h-full flex flex-col gap-4"}>
       {map ? <MapboxContext.Provider value={{ map }}>{children}</MapboxContext.Provider> : null}
-      <div className="flex gap-0 h-full w-full rounded-md overflow-hidden border">
-        {sidePanel && <div className="h-full w-74 border-e overflow-y-auto">{sidePanel}</div>}
-        <div ref={containerRef} className="h-full w-full" />
+      <div ref={containerRef} className="h-full w-full rounded-md border" />
+      <div className="absolute z-10 top-[10px] left-[10px] w-64">
+        {map && (
+          <SearchBox
+            accessToken={env.VITE_MAPBOX_TOKEN}
+            map={map}
+            mapboxgl={mapboxgl}
+            marker={true}
+          />
+        )}
       </div>
     </div>
   );

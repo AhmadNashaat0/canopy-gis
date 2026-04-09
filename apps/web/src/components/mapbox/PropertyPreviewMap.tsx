@@ -73,22 +73,21 @@ function FlyToOnSelect({ properties, selectedProperty, zoomOnSelect = 12 }: FlyT
 
 export type PropertyPreviewMapProps = {
   properties: Property[];
-  fitToProperties?: boolean;
-  fitToPropertiesPadding?: number;
+  isLoading: boolean;
   selectedProperty: Property | null;
   setSelectedProperty: (property: Property | null) => void;
 };
 
 export function PropertyPreviewMap({
   properties,
-  fitToProperties = true,
-  fitToPropertiesPadding = 48,
+  isLoading,
   selectedProperty,
   setSelectedProperty,
 }: PropertyPreviewMapProps) {
   const [mapError, setMapError] = React.useState<string | null>(null);
-  const bounds = React.useMemo(() => getBoundsFromProperties(properties), [properties]);
+  const bounds = React.useMemo(() => getBoundsFromProperties(properties), [properties, isLoading]);
   const defaultCenter = React.useMemo((): mapboxgl.LngLatLike => [-98, 39], []);
+
   return (
     <div className={cn(`relative w-full h-full min-h-125`)}>
       <MapboxProvider
@@ -99,8 +98,8 @@ export function PropertyPreviewMap({
           scrollZoom: true,
           boxZoom: true,
         }}
-        fitBounds={fitToProperties ? (bounds ?? undefined) : undefined}
-        fitBoundsOptions={{ padding: fitToPropertiesPadding, duration: 700 }}
+        fitBounds={bounds ?? undefined}
+        fitBoundsOptions={{ padding: 48, duration: 700 }}
         onMapError={(e) => {
           if (e && typeof e === "object" && "error" in e) {
             const wrapped = (e as { error?: unknown }).error;
@@ -126,14 +125,16 @@ export function PropertyPreviewMap({
             Map error: {mapError}
           </div>
         )}
-
-        <FlyToOnSelect properties={properties} selectedProperty={selectedProperty} />
-
-        <PropertyPreviewLayers
-          properties={properties}
-          selectedProperty={selectedProperty}
-          setSelectedProperty={setSelectedProperty}
-        />
+        {!isLoading && (
+          <FlyToOnSelect properties={properties} selectedProperty={selectedProperty} />
+        )}
+        {!isLoading && (
+          <PropertyPreviewLayers
+            properties={properties}
+            selectedProperty={selectedProperty}
+            setSelectedProperty={setSelectedProperty}
+          />
+        )}
       </MapboxProvider>
     </div>
   );
