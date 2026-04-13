@@ -1,4 +1,4 @@
-import { env } from "@gis-app/env/server";
+import { env } from "@gis-app/env/worker";
 
 export const connection = {
   host: env.REDIS_HOST,
