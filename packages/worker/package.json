@@ -1,0 +1,33 @@
+{
+  "name": "@gis-app/worker",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsx --env-file=../../apps/server/.env src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@bull-board/api": "^6.21.2",
+    "@bull-board/hono": "^6.21.2",
+    "@gis-app/db": "workspace:*",
+    "@gis-app/env": "workspace:*",
+    "@hono/node-server": "^1.19.12",
+    "bullmq": "^5.7.0",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gis-app/config": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "^4.7.0",
+    "typescript": "^5"
+  }
+}

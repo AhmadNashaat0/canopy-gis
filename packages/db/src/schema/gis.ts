@@ -8,50 +8,12 @@ import {
   timestamp,
   bigserial,
   foreignKey,
-  serial,
   numeric,
   geometry,
   uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
-
-export const geocodeCache = pgTable("geocode_cache", {
-  fullAddress: text("full_address").primaryKey().notNull(),
-  latitude: doublePrecision(),
-  longitude: doublePrecision(),
-  accuracy: text(),
-  source: text(),
-  createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
-});
-
-export const gisGeocodeLog = pgTable(
-  "gis_geocode_log",
-  {
-    id: serial().primaryKey().notNull(),
-    propertyId: text("property_id"),
-    addressText: text("address_text"),
-    geocodeSource: text("geocode_source"),
-    latitude: doublePrecision(),
-    longitude: doublePrecision(),
-    confidenceScore: numeric("confidence_score"),
-    status: text(),
-    errorMessage: text("error_message"),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    index("idx_gis_geocode_log_property").using(
-      "btree",
-      table.propertyId.asc().nullsLast().op("text_ops"),
-    ),
-    foreignKey({
-      columns: [table.propertyId],
-      foreignColumns: [gisProperties.propertyId],
-      name: "gis_geocode_log_property_id_fkey",
-    }),
-  ],
-);
 
 export const gisProperties = pgTable(
   "gis_properties",
@@ -150,15 +112,44 @@ export const gisSalesEvidence = pgTable(
   ],
 );
 
-export const gisGeocodeLogRelations = relations(gisGeocodeLog, ({ one }) => ({
-  gisProperty: one(gisProperties, {
-    fields: [gisGeocodeLog.propertyId],
-    references: [gisProperties.propertyId],
-  }),
-}));
+export const gisBasisGrid = pgTable(
+  "gis_basis_grid",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    cellLat: doublePrecision("cell_lat").notNull(),
+    cellLon: doublePrecision("cell_lon").notNull(),
+    cellDlat: doublePrecision("cell_dlat").notNull(),
+    cellDlon: doublePrecision("cell_dlon").notNull(),
+
+    suiteSizeBucket: text("suite_size_bucket").notNull(),
+    buildingClass: text("building_class").notNull(),
+
+    basisPsf: numeric("basis_psf").notNull(),
+    ess: numeric("ess").notNull(),
+    confidence: text("confidence").notNull(),
+    method: text("method").notNull(),
+
+    market: text("market").notNull(),
+
+    renderBasisPsf: numeric("render_basis_psf").notNull(),
+    renderOpacity: numeric("render_opacity").notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("idx_gis_basis_grid_market_suite_bucket").using(
+      "btree",
+      table.market.asc().nullsLast().op("text_ops"),
+      table.suiteSizeBucket.asc().nullsLast().op("text_ops"),
+      table.buildingClass.asc().nullsLast().op("text_ops"),
+    ),
+  ],
+);
 
 export const gisPropertiesRelations = relations(gisProperties, ({ many }) => ({
-  gisGeocodeLogs: many(gisGeocodeLog),
   gisSalesEvidences: many(gisSalesEvidence),
 }));
 

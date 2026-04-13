@@ -5,7 +5,7 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/canopy-gis-server-prod:latest
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/server/Dockerfile
     environment:
       CORS_ORIGIN: ${CORS_ORIGIN}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -14,3 +14,30 @@ services:
     restart: always
     ports:
       - "3000:3000"
+
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/canopy-gis-worker-prod:latest
+    build:
+      context: .
+      dockerfile: packages/worker/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "${BULLMQ_PORT}:4000"
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+volumes:
+  redis_data:

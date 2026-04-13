@@ -1,0 +1,5 @@
+{
+  "extends": "@gis-app/config/tsconfig.base.json",
+  "include": ["src", "env.ts"],
+  "exclude": ["node_modules"]
+}
