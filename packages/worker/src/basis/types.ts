@@ -25,6 +25,9 @@ export type SalesEvidenceRow = {
   suiteSizeBucket: string | null;
   dataSource: string;
   confidenceScore: string | null;
+  saleAgeMonths: number | null;
+  hasValidSale: boolean;
+  saleQualityFlag: string;
 };
 
 export type SourceEvidenceRow = {
