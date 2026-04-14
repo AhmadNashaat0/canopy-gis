@@ -12,11 +12,11 @@ export async function setupBasisJobs() {
     {},
     {
       repeat: {
-        pattern: "0 1 * * *", // Daily at 1 AM
+        pattern: "0 2 * * *",
       },
     },
   );
-  console.log("Job scheduled: daily at 1 AM");
+  console.log("Job scheduled: daily at 2 AM");
 }
 
 export const basisWorker = new Worker(
