@@ -149,6 +149,31 @@ export const gisBasisGrid = pgTable(
   ],
 );
 
+export const gisBasisLayer = pgTable(
+  "gis_basis_layer",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    market: text("market").notNull(),
+    buildingClass: text("building_class").notNull(),
+    suiteSize: text("suite_size").notNull(),
+
+    url: text("url").notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("ux_gis_basis_layer_market_class_size").using(
+      "btree",
+      table.market.asc().nullsLast().op("text_ops"),
+      table.buildingClass.asc().nullsLast().op("text_ops"),
+      table.suiteSize.asc().nullsLast().op("text_ops"),
+    ),
+  ],
+);
+
 export const gisPropertiesRelations = relations(gisProperties, ({ many }) => ({
   gisSalesEvidences: many(gisSalesEvidence),
 }));

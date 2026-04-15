@@ -4,7 +4,8 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
-import { basisGridQueue, setupBasisJobs } from "./basis/queue";
+import { basisGridQueue, setupBasisJobs } from "./basis-grid/queue";
+import { basisLayerQueue } from "./basis-layer/queue";
 
 async function boot() {
   // Setup all scheduled jobs
@@ -16,7 +17,7 @@ async function boot() {
 
   const serverAdapter = new HonoAdapter(serveStatic);
   createBullBoard({
-    queues: [new BullMQAdapter(basisGridQueue as any)],
+    queues: [new BullMQAdapter(basisGridQueue as any), new BullMQAdapter(basisLayerQueue as any)],
     serverAdapter: serverAdapter,
   });
 

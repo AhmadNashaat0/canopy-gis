@@ -16,6 +16,7 @@
   "dependencies": {
     "@bull-board/api": "^6.21.2",
     "@bull-board/hono": "^6.21.2",
+    "@aws-sdk/client-s3": "^3.888.0",
     "@gis-app/db": "workspace:*",
     "@gis-app/env": "workspace:*",
     "@hono/node-server": "^1.19.12",
