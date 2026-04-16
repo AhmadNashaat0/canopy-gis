@@ -14,6 +14,9 @@ export const createUser = {
           name: `${body.firstName} ${body.lastName}`,
           password: body.password ?? "",
           role: body.role,
+          data: {
+            market: body.market,
+          },
         });
       },
       onSuccess() {

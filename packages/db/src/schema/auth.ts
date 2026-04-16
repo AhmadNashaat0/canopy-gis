@@ -19,6 +19,7 @@ export const user = pgTable("user", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   isActive: boolean("is_active").default(true).notNull(),
+  market: text("market"),
   loginCount: integer("login_count").default(0).notNull(),
 });
 

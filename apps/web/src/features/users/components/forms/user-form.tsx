@@ -1,4 +1,4 @@
-import type { UseMutationResult } from "@tanstack/react-query";
+import { useQuery, type UseMutationResult } from "@tanstack/react-query";
 import { KeyIcon, MailIcon } from "lucide-react";
 import { Activity } from "react";
 import { Button } from "@gis-app/ui/components/button";
@@ -17,6 +17,8 @@ import { type Roles, rolesList } from "@/features/users/utils";
 import { useForm } from "@/lib/form";
 import type { GetUser } from "../../actions/get-user";
 import { type UseCreateUserType, useCreateUserSchema } from "../../schema";
+import { BasicCombobox } from "@/components/basic-combobox";
+import { trpc } from "@/lib/trpc";
 
 export function UserForm({
   closeFn,
@@ -31,6 +33,11 @@ export function UserForm({
   const schema = useCreateUserSchema({
     isPasswordOptional: Boolean(userDefaultValues),
   });
+  const { data: filters } = useQuery(
+    trpc.properties.getPropertiesFilters.queryOptions(undefined, {
+      trpc: { abortOnUnmount: true },
+    }),
+  );
   const form = useForm({
     defaultValues: {
       firstName: userDefaultValues?.name?.split(" ")?.[0] || "",
@@ -38,6 +45,7 @@ export function UserForm({
       email: userDefaultValues?.email ?? "",
       password: "",
       role: userDefaultValues?.role ?? rolesList[0],
+      market: userDefaultValues?.market ?? "",
     } as UseCreateUserType,
     validators: {
       onSubmit: schema,
@@ -54,7 +62,7 @@ export function UserForm({
         form.handleSubmit();
       }}
     >
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="flex flex-col gap-4 md:flex-row">
         <form.Field label="First Name" name="firstName">
           {(field) => (
             <InputGroup>
@@ -86,28 +94,41 @@ export function UserForm({
           )}
         </form.Field>
       </div>
-      <form.Field label="Role" name="role">
-        {(field) => (
-          <Select
-            onValueChange={(value) => field.handleChange(value as Roles)}
-            value={field.state.value}
-          >
-            <SelectTrigger id={field.name}>
-              <SelectValue placeholder="select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Roles</SelectLabel>
-                {rolesList.map((v) => (
-                  <SelectItem key={v} value={v}>
-                    {v}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      </form.Field>
+      <div className="flex flex-col gap-4 md:flex-row">
+        <form.Field label="Role" name="role">
+          {(field) => (
+            <Select
+              onValueChange={(value) => field.handleChange(value as Roles)}
+              value={field.state.value}
+            >
+              <SelectTrigger id={field.name}>
+                <SelectValue placeholder="select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Roles</SelectLabel>
+                  {rolesList.map((v) => (
+                    <SelectItem key={v} value={v}>
+                      {v}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
+        </form.Field>
+        <form.Field label="Market" name="market">
+          {(field) => (
+            <BasicCombobox
+              name={field.name}
+              value={field.state.value}
+              onValueChange={(v) => field.handleChange(v as string)}
+              items={filters?.marketList}
+              className="h-9"
+            />
+          )}
+        </form.Field>
+      </div>
       <form.Field label="Email" name="email">
         {(field) => (
           <InputGroup>

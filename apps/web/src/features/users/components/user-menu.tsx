@@ -17,12 +17,14 @@ export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) 
       <PopoverTrigger
         render={
           isCombact ? (
-            <Avatar>
-              <AvatarImage alt="Profile image" src={user.image ?? ""} />
-              <AvatarFallback className="border bg-primary text-primary-foreground uppercase">
-                {`${user.name.split(" ")[0][0]}${user.name.split(" ")[1][0]}`}
-              </AvatarFallback>
-            </Avatar>
+            <Button variant={"ghost"} size={"icon-sm"} className={"size-8 rounded-full"}>
+              <Avatar>
+                <AvatarImage alt="Profile image" src={user.image ?? ""} />
+                <AvatarFallback className="border bg-primary text-primary-foreground uppercase">
+                  {`${user.name.split(" ")[0][0]}${user.name.split(" ")[1][0]}`}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
           ) : (
             <SidebarMenuButton size="lg">
               <Avatar className="h-8 w-8 rounded-lg">

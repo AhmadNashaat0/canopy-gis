@@ -7,8 +7,8 @@ export const Route = createFileRoute("/_auth/login")({
 });
 
 export default function LoginPage() {
-  const { data } = authClient.useSession();
-  if (data) {
+  const { data, error } = authClient.useSession();
+  if (data && !error) {
     return <Navigate to={"/"} />;
   }
   return (

@@ -5,11 +5,18 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxGroup,
+  ComboboxLabel,
 } from "@gis-app/ui/components/combobox";
+import { cn } from "@gis-app/ui/lib/utils";
 
 export function BasicCombobox({
   ...props
-}: React.ComponentProps<typeof Combobox> & { placeholder?: string }) {
+}: React.ComponentProps<typeof Combobox> & {
+  placeholder?: string;
+  className?: string;
+  showTrigger?: boolean;
+}) {
   return (
     <Combobox
       {...props}
@@ -24,22 +31,29 @@ export function BasicCombobox({
         }
       }}
     >
-      <ComboboxInput placeholder={props.placeholder ?? "Select..."} />
+      <ComboboxInput
+        placeholder={props.placeholder ?? "Select..."}
+        className={cn("h-8", props.className)}
+        showTrigger={props.showTrigger}
+      />
       <ComboboxContent>
         <ComboboxEmpty>No items found.</ComboboxEmpty>
-        <ComboboxList>
-          {(item) =>
-            item ? (
-              <ComboboxItem key={item} value={item}>
-                {item}
-              </ComboboxItem>
-            ) : (
-              <ComboboxItem key="null-item" value="None">
-                None
-              </ComboboxItem>
-            )
-          }
-        </ComboboxList>
+        <ComboboxGroup>
+          <ComboboxLabel>{props.placeholder}</ComboboxLabel>
+          <ComboboxList>
+            {(item) =>
+              item ? (
+                <ComboboxItem key={item} value={item}>
+                  {item}
+                </ComboboxItem>
+              ) : (
+                <ComboboxItem key="null-item" value="None">
+                  None
+                </ComboboxItem>
+              )
+            }
+          </ComboboxList>
+        </ComboboxGroup>
       </ComboboxContent>
     </Combobox>
   );

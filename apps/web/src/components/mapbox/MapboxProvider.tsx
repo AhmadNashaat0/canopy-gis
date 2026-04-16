@@ -20,7 +20,6 @@ export type MapboxProviderProps = {
     geolocate?: boolean;
   };
   fitBounds?: mapboxgl.LngLatBoundsLike;
-  fitBoundsOptions?: mapboxgl.MapOptions["fitBoundsOptions"];
   onMapReady?: (map: mapboxgl.Map) => void;
   onMapError?: (error: unknown) => void;
   children?: ReactNode;
@@ -31,7 +30,6 @@ export function MapboxProvider({
   mapOptions,
   controls = { navigation: true, fullscreen: true, scale: false, geolocate: false },
   fitBounds,
-  fitBoundsOptions,
   onMapReady,
   onMapError,
   children,
@@ -59,14 +57,14 @@ export function MapboxProvider({
     mapInstance.on("error", onError);
 
     const navigationControl = controls.navigation ? new mapboxgl.NavigationControl() : null;
-    const fullscreenControl = controls.fullscreen ? new mapboxgl.FullscreenControl() : null;
-    const scaleControl = controls.scale ? new mapboxgl.ScaleControl() : null;
-    const geolocateControl = controls.geolocate ? new mapboxgl.GeolocateControl({}) : null;
+    // const fullscreenControl = controls.fullscreen ? new mapboxgl.FullscreenControl() : null;
+    // const scaleControl = controls.scale ? new mapboxgl.ScaleControl() : null;
+    // const geolocateControl = controls.geolocate ? new mapboxgl.GeolocateControl({}) : null;
 
     if (navigationControl) mapInstance.addControl(navigationControl, "top-right");
-    if (fullscreenControl) mapInstance.addControl(fullscreenControl, "top-right");
-    if (scaleControl) mapInstance.addControl(scaleControl, "bottom-left");
-    if (geolocateControl) mapInstance.addControl(geolocateControl, "top-right");
+    // if (fullscreenControl) mapInstance.addControl(fullscreenControl, "top-right");
+    // if (scaleControl) mapInstance.addControl(scaleControl, "bottom-left");
+    // if (geolocateControl) mapInstance.addControl(geolocateControl, "top-right");
 
     // Keep map canvas sized correctly.
     const ro = new ResizeObserver(() => {
@@ -77,7 +75,7 @@ export function MapboxProvider({
     const maybeFitBounds = () => {
       if (!fitBounds) return;
       try {
-        mapInstance.fitBounds(fitBounds, fitBoundsOptions);
+        mapInstance.fitBounds(fitBounds, { padding: 48, duration: 1500 });
       } catch {
         // Ignore fit errors when bounds are invalid.
       }
@@ -85,7 +83,6 @@ export function MapboxProvider({
 
     const onLoad = () => {
       maybeFitBounds();
-      // First paint sometimes happens before layout is final; resize fixes a blank canvas.
       mapInstance.resize();
       requestAnimationFrame(() => {
         mapInstance.resize();
@@ -109,13 +106,13 @@ export function MapboxProvider({
     if (!fitBounds) return;
     const doFit = () => {
       try {
-        mapRef.current?.fitBounds(fitBounds, fitBoundsOptions);
+        mapRef.current?.fitBounds(fitBounds, { padding: 48, duration: 1500 });
       } catch {
         // Ignore fit errors when bounds are invalid.
       }
     };
     doFit();
-  }, [fitBounds, fitBoundsOptions]);
+  }, [fitBounds]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -126,7 +123,7 @@ export function MapboxProvider({
   return (
     <div className={"relative w-full h-full flex flex-col gap-4"}>
       {map ? <MapboxContext.Provider value={{ map }}>{children}</MapboxContext.Provider> : null}
-      <div ref={containerRef} className="h-full w-full rounded-md border" />
+      <div ref={containerRef} className="h-full w-full border" />
       <div className="absolute z-10 top-[10px] left-[10px] w-64">
         {map && (
           <SearchBox

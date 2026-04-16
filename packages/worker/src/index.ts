@@ -21,11 +21,11 @@ async function boot() {
     serverAdapter: serverAdapter,
   });
 
-  const basePath = "/admin/queues";
+  const basePath = "/";
   serverAdapter.setBasePath(basePath);
   app.route(basePath, serverAdapter.registerPlugin());
 
-  app.get("/", (c) => c.text("Worker is running"));
+  app.get("/health", (c) => c.text("Worker is running"));
 
   serve(
     {

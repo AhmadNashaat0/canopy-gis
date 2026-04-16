@@ -1,5 +1,6 @@
 import { usersRouter } from "../features/users/route";
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { basisRouter } from "./basis";
 import { propertiesRouter } from "./properties";
 
 export const appRouter = router({
@@ -13,6 +14,7 @@ export const appRouter = router({
     };
   }),
   properties: propertiesRouter,
+  basis: basisRouter,
   users: usersRouter,
 });
 export type AppRouter = typeof appRouter;

@@ -1,9 +1,10 @@
 import * as React from "react";
 import { MapboxProvider } from "./MapboxProvider";
 import { PropertyPreviewLayers } from "./PropertyPreviewLayers";
-import { useMapbox } from "./MapboxContext";
 import { cn } from "@gis-app/ui/lib/utils";
-import type { Property } from "@/routes/_app/index";
+import type { BasisGrid, Property } from "@/routes/_app/index";
+import { useMapbox } from "./MapboxContext";
+import { BasisPreviewLayers } from "./BasisPreviewLayers";
 
 function getBoundsFromProperties(
   properties: Property[],
@@ -45,61 +46,41 @@ function getBoundsFromProperties(
   ];
 }
 
-type FlyToOnSelectProps = {
-  properties: Property[];
-  selectedProperty: Property | null;
-  zoomOnSelect?: number;
-};
-
-function FlyToOnSelect({ properties, selectedProperty, zoomOnSelect = 12 }: FlyToOnSelectProps) {
-  const map = useMapbox();
-
-  React.useEffect(() => {
-    if (!map) return;
-    if (selectedProperty === null || selectedProperty === undefined) return;
-
-    const target = properties.find((p) => p.id === selectedProperty.id);
-    if (!target || !target.latitude || !target.longitude) return;
-
-    map.flyTo({
-      center: [target.longitude, target.latitude],
-      zoom: zoomOnSelect,
-      essential: true,
-    });
-  }, [map, properties, selectedProperty, zoomOnSelect]);
-
-  return null;
-}
-
 export type PropertyPreviewMapProps = {
   properties: Property[];
-  isLoading: boolean;
   selectedProperty: Property | null;
+  basisGrids?: BasisGrid[];
+  isLoading?: boolean;
   setSelectedProperty: (property: Property | null) => void;
+  setMapBounds?: (
+    bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number } | undefined,
+  ) => void;
+  setZoom?: (zoom: number | undefined) => void;
 };
 
-export function PropertyPreviewMap({
+export const PropertyPreviewMap = React.memo(function PropertyPreviewMap({
   properties,
-  isLoading,
+  basisGrids,
   selectedProperty,
   setSelectedProperty,
+  setMapBounds,
+  setZoom,
 }: PropertyPreviewMapProps) {
   const [mapError, setMapError] = React.useState<string | null>(null);
-  const bounds = React.useMemo(() => getBoundsFromProperties(properties), [properties, isLoading]);
+  const bounds = React.useMemo(() => getBoundsFromProperties(properties), [properties]);
   const defaultCenter = React.useMemo((): mapboxgl.LngLatLike => [-98, 39], []);
 
   return (
-    <div className={cn(`relative w-full h-full min-h-125`)}>
+    <div className={cn(`relative size-full min-h-100`)}>
       <MapboxProvider
         mapOptions={{
           center: defaultCenter,
-          zoom: 2,
+          zoom: 3.5,
           dragRotate: true,
           scrollZoom: true,
           boxZoom: true,
         }}
         fitBounds={bounds ?? undefined}
-        fitBoundsOptions={{ padding: 48, duration: 700 }}
         onMapError={(e) => {
           if (e && typeof e === "object" && "error" in e) {
             const wrapped = (e as { error?: unknown }).error;
@@ -125,17 +106,57 @@ export function PropertyPreviewMap({
             Map error: {mapError}
           </div>
         )}
-        {!isLoading && (
-          <FlyToOnSelect properties={properties} selectedProperty={selectedProperty} />
-        )}
-        {!isLoading && (
-          <PropertyPreviewLayers
-            properties={properties}
-            selectedProperty={selectedProperty}
-            setSelectedProperty={setSelectedProperty}
-          />
-        )}
+        <PropertyPreviewLayers
+          properties={properties}
+          selectedProperty={selectedProperty}
+          setSelectedProperty={setSelectedProperty}
+        />
+        <BasisPreviewLayers basisGrids={basisGrids} />
+        <MapSetter setZoom={setZoom} setMapBounds={setMapBounds} />
       </MapboxProvider>
     </div>
   );
+});
+
+function MapSetter({
+  setZoom,
+  setMapBounds,
+}: {
+  setZoom?: (zoom: number | undefined) => void;
+  setMapBounds?: (
+    bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number } | undefined,
+  ) => void;
+}) {
+  const map = useMapbox();
+
+  function onZoomEnd(map: mapboxgl.Map) {
+    const zoom = map.getZoom().toFixed(2);
+    setZoom?.(Number(zoom));
+  }
+
+  function onMoveEnd(map: mapboxgl.Map) {
+    const mapBounds = map.getBounds();
+    if (!mapBounds) return;
+    const mapBoundsMap = {
+      maxLat: Number(mapBounds.getNorth().toFixed(2)),
+      maxLng: Number(mapBounds.getEast().toFixed(2)),
+      minLat: Number(mapBounds.getSouth().toFixed(2)),
+      minLng: Number(mapBounds.getWest().toFixed(2)),
+    };
+    setMapBounds?.(mapBoundsMap);
+  }
+
+  React.useEffect(() => {
+    if (!map) return;
+
+    map.on("zoomend", () => onZoomEnd(map));
+    map.on("moveend", () => onMoveEnd(map));
+
+    return () => {
+      map.off("zoomend", () => onZoomEnd(map));
+      map.off("moveend", () => onMoveEnd(map));
+    };
+  }, [map]);
+
+  return null;
 }

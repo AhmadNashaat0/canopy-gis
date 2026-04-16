@@ -35,6 +35,12 @@ export function createAuth() {
           input: true,
           default: true,
         },
+        market: {
+          type: "string",
+          required: false,
+          returned: true,
+          input: true,
+        },
       },
     },
     plugins: [

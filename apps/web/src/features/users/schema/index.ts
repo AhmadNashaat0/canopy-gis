@@ -31,6 +31,7 @@ export function useCreateUserSchema({ isPasswordOptional }: { isPasswordOptional
     email: z.email({ error: "invalid email" }).transform((email) => email.toLowerCase()),
     password: z.string().optional(),
     role: z.enum(rolesList),
+    market: z.string().optional(),
   });
 
   if (isPasswordOptional) {

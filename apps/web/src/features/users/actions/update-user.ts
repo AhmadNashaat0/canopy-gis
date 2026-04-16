@@ -16,6 +16,7 @@ export const updateUser = {
             email: body.email,
             name: `${body.firstName} ${body.lastName}`,
             role: body.role,
+            market: body.market,
           },
         });
       },
