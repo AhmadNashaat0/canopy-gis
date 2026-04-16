@@ -1,10 +1,11 @@
-import { ChevronsUpDown, LogOutIcon } from "lucide-react";
+import { ChevronsUpDown, KeyIcon, LogOutIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@gis-app/ui/components/avatar";
 import { Button } from "@gis-app/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@gis-app/ui/components/popover";
 import { SidebarMenuButton } from "@gis-app/ui/components/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { ThemeDropdownMenu } from "@/components/theme/theme-dropdown-menu";
+import { UpdatePasswordDialog } from "./dialogs/update-password-dialog";
 
 export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) {
   const { data } = authClient.useSession();
@@ -63,6 +64,19 @@ export default function UserMenu({ isCombact = true }: { isCombact?: boolean }) 
           </div>
         </div>
         <div className="border-t">
+          <UpdatePasswordDialog>
+            <Button
+              className="group h-full w-full justify-start px-3 py-2 font-normal capitalize"
+              variant="ghost"
+            >
+              <KeyIcon
+                aria-hidden="true"
+                className="opacity-60 group-hover:opacity-100"
+                size={16}
+              />
+              <span>Update Password</span>
+            </Button>
+          </UpdatePasswordDialog>
           <Button
             className="group h-full w-full justify-start px-3 py-2 font-normal capitalize"
             onClick={() => authClient.signOut()}

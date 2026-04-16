@@ -5,17 +5,22 @@ import { authClient } from "@/lib/auth-client";
 export const updateUserPassword = {
   useMutation: ({ onSuccess }: { onSuccess?: () => void }) => {
     return useMutation({
-      mutationFn: ({
+      mutationFn: async ({
         currentPassword,
         newPassword,
       }: {
         currentPassword: string;
         newPassword: string;
-      }) =>
-        authClient.changePassword({
+      }) => {
+        const { error } = await authClient.changePassword({
           currentPassword,
           newPassword,
-        }),
+        });
+        if (error) {
+          toast.error(error.message);
+          throw error;
+        }
+      },
       onSuccess: () => {
         toast.success("Your password updated successfully");
         onSuccess?.();

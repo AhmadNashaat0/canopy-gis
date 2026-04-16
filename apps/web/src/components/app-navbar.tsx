@@ -11,16 +11,16 @@ export function AppNavbar() {
           {/* <h2 className="font-bold">Canopy</h2> */}
         </div>
       </div>
-      <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-        <Link
-          to="/"
-          activeProps={{
-            className: "text-primary",
-          }}
-        >
-          Home
-        </Link>
-        <Authorization allowedRoles={["admin"]}>
+      <Authorization allowedRoles={["admin"]}>
+        <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+          <Link
+            to="/"
+            activeProps={{
+              className: "text-primary",
+            }}
+          >
+            Home
+          </Link>
           <Link
             to="/users"
             activeProps={{
@@ -29,8 +29,8 @@ export function AppNavbar() {
           >
             Users
           </Link>
-        </Authorization>
-      </div>
+        </div>
+      </Authorization>
       <div className="flex items-center gap-2">
         <UserMenu />
       </div>

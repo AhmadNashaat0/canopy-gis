@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarHeader,
 } from "@gis-app/ui/components/sidebar";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { cn } from "@gis-app/ui/lib/utils";
@@ -78,15 +78,23 @@ function MainRoute() {
     }),
   );
 
-  const { data: properties, isLoading: isPropertiesLoading } = useQuery(
+  const {
+    data: properties,
+    isLoading: isPropertiesLoading,
+    isFetching,
+  } = useQuery(
     trpc.properties.getAll.queryOptions(
       {
         market: selectedMarket,
         buildingClass: selectedBuildingClass,
         suiteSize: selectedSuiteSize,
         page,
+        maxLat: mapBounds?.maxLat,
+        minLat: mapBounds?.minLat,
+        maxLon: mapBounds?.maxLng,
+        minLon: mapBounds?.minLng,
       },
-      { trpc: { abortOnUnmount: true } },
+      { trpc: { abortOnUnmount: true }, placeholderData: keepPreviousData },
     ),
   );
 
@@ -102,19 +110,23 @@ function MainRoute() {
       <Sidebar className="sticky h-full bg-background">
         <SidebarHeader className="flex flex-row h-auto gap-2 justify-between items-center border-b py-1.5">
           <div className="flex gap-1 text-muted-foreground text-sm">
-            {isPropertiesLoading ? (
+            {isPropertiesLoading || isFetching ? (
               <Skeleton className="h-4 w-6" />
             ) : (
               (page - 1) * (properties?.pageSize ?? 0) + 1
             )}
             {" - "}
-            {isPropertiesLoading ? (
+            {isPropertiesLoading || isFetching ? (
               <Skeleton className="h-4 w-6" />
             ) : (
               Math.min(page * (properties?.pageSize ?? 0), properties?.totals ?? 0)
             )}
             {" / "}
-            {isPropertiesLoading ? <Skeleton className="h-4 w-6" /> : properties?.totals}
+            {isPropertiesLoading || isFetching ? (
+              <Skeleton className="h-4 w-6" />
+            ) : (
+              properties?.totals
+            )}
           </div>
           <div className="flex gap-1">
             <Button

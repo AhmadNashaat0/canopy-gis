@@ -1,7 +1,6 @@
 import { Worker, Queue } from "bullmq";
 import { runBasisGridPipeline } from "./index";
 import { connection } from "../redis";
-import { basisLayerQueue } from "../basis-layer/queue";
 
 const queueName = "basis-grid-queue";
 
@@ -26,7 +25,7 @@ export const basisWorker = new Worker(
     console.log(`Job ${job.name} started`);
     if (job.name === "daily-run") {
       await runBasisGridPipeline();
-      await basisLayerQueue.add("run", {});
+      // await basisLayerQueue.add("run", {});
     }
   },
   { connection },

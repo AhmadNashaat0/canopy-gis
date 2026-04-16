@@ -7,7 +7,7 @@ import { addBboxWhereClauses, addToWhereClausesIfValid } from "../utils";
 
 const getAllInputSchema = z.object({
   page: z.number().optional().default(1),
-  size: z.number().optional().default(2000),
+  size: z.number().optional().default(1500),
   yearBuiltStart: z.number().optional(),
   yearBuiltEnd: z.number().optional(),
   buildingClass: z.string().optional().nullable(),
@@ -73,11 +73,11 @@ export const propertiesRouter = router({
       .from(gisProperties)
       .leftJoin(
         sql`LATERAL (
-          SELECT sale_price, sale_date
-          FROM gis_sales_evidence
-          WHERE property_id = ${gisProperties.propertyId}
-          ORDER BY sale_date DESC
-          LIMIT 1
+        SELECT sale_price, sale_date
+        FROM gis_sales_evidence
+        WHERE property_id = ${gisProperties.propertyId}
+        ORDER BY sale_date DESC
+        LIMIT 1
         ) AS latest_sale`,
         sql`true`,
       )
@@ -89,6 +89,10 @@ export const propertiesRouter = router({
     addToWhereClausesIfValid(totalsWhereClauses, gisProperties.market, input.market);
     addToWhereClausesIfValid(totalsWhereClauses, gisProperties.buildingClass, input.buildingClass);
     addToWhereClausesIfValid(totalsWhereClauses, gisProperties.avgSuiteSizeBucket, input.suiteSize);
+    addBboxWhereClauses(totalsWhereClauses, input, {
+      lat: gisProperties.latitude,
+      lon: gisProperties.longitude,
+    });
     const totals = await db.$count(gisProperties, and(...totalsWhereClauses));
     return {
       items,
