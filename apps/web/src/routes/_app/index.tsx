@@ -13,7 +13,7 @@ import {
 } from "@gis-app/ui/components/sidebar";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@gis-app/ui/lib/utils";
 import { BasicCombobox } from "@/components/basic-combobox";
 import { Spinner } from "@gis-app/ui/components/spinner";
@@ -35,8 +35,6 @@ export type BasisGrid = RouterOutput["basis"]["getAll"]["items"][number];
 function MainRoute() {
   const session = authClient.useSession();
 
-  const [page, setPage] = useState(1);
-
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedBuildingClass, setSelectedBuildingClass] = useState<string | undefined>("");
   const [selectedSuiteSize, setSelectedSuiteSize] = useState<string | undefined>("");
@@ -45,6 +43,7 @@ function MainRoute() {
     session.data?.user?.market ?? "McAllen, TX",
   );
 
+  const [page, setPage] = useState(1);
   const [mapZoom, setMapZoom] = useState<number | undefined>(undefined);
   const [mapBounds, setMapBounds] = useState<
     { minLng: number; minLat: number; maxLng: number; maxLat: number } | undefined
@@ -105,6 +104,12 @@ function MainRoute() {
     return Array.from(basisMap.values());
   }, [basisGrids]);
 
+  useEffect(() => {
+    if (properties?.totalPages && page > properties?.totalPages) {
+      setPage(properties?.totalPages);
+    }
+  }, [properties?.totalPages]);
+
   return (
     <SidebarProvider className="min-h-full h-full">
       <Sidebar className="sticky h-full bg-background">
@@ -142,7 +147,7 @@ function MainRoute() {
               variant={"outline"}
               size={"icon-sm"}
               className="size-8"
-              disabled={page === properties?.totalPages}
+              disabled={!properties?.totalPages || page >= properties?.totalPages}
               onClick={() => setPage(page + 1)}
             >
               <ChevronRight />

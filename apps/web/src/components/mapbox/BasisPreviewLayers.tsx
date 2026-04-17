@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMapbox } from "./MapboxContext";
+import { useMapbox, useMapboxIsMapStyleLoaded } from "./MapboxContext";
 import type { BasisGrid } from "@/routes/_app/index";
 
 const SOURCE_ID = "basis-grid-source";
@@ -56,15 +56,17 @@ function basisGridsToGeoJSON(basisGrids: BasisGrid[]) {
   } as const;
 }
 
-export function BasisPreviewLayers({ basisGrids }: BasisPreviewLayersProps) {
+export const BasisPreviewLayers = React.memo(function BasisPreviewLayers({
+  basisGrids,
+}: BasisPreviewLayersProps) {
   const map = useMapbox();
+  const isMapStyleLoaded = useMapboxIsMapStyleLoaded();
 
   React.useEffect(() => {
-    if (!map) return;
-
-    const geojson = basisGridsToGeoJSON(basisGrids ?? []);
+    if (!map || !isMapStyleLoaded || !basisGrids) return;
 
     const ensureSourceAndLayers = () => {
+      const geojson = basisGridsToGeoJSON(basisGrids ?? []);
       // Source
       const existingSource = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
       if (!existingSource) {
@@ -110,18 +112,10 @@ export function BasisPreviewLayers({ basisGrids }: BasisPreviewLayersProps) {
       }
     };
 
-    if (map.isStyleLoaded()) {
+    if (isMapStyleLoaded) {
       ensureSourceAndLayers();
-    } else {
-      map.once("style.load", ensureSourceAndLayers);
     }
-
-    map.on("style.load", ensureSourceAndLayers);
-
-    return () => {
-      map.off("style.load", ensureSourceAndLayers);
-    };
-  }, [map, basisGrids, map?.style]);
+  }, [map, basisGrids, isMapStyleLoaded]);
 
   return null;
-}
+});

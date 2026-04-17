@@ -6,52 +6,7 @@ import type { BasisGrid, Property } from "@/routes/_app/index";
 import { useMapbox } from "./MapboxContext";
 import { BasisPreviewLayers } from "./BasisPreviewLayers";
 
-function _getBoundsFromProperties(
-  properties: Property[],
-): [[number, number], [number, number]] | null {
-  if (properties.length === 0) return null;
-  let minLng = Number.POSITIVE_INFINITY;
-  let minLat = Number.POSITIVE_INFINITY;
-  let maxLng = Number.NEGATIVE_INFINITY;
-  let maxLat = Number.NEGATIVE_INFINITY;
-
-  for (const p of properties) {
-    if (!p.longitude || !p.latitude || Number.isNaN(p.longitude) || Number.isNaN(p.latitude))
-      continue;
-    minLng = Math.min(minLng, p.longitude);
-    minLat = Math.min(minLat, p.latitude);
-    maxLng = Math.max(maxLng, p.longitude);
-    maxLat = Math.max(maxLat, p.latitude);
-  }
-
-  if (
-    !Number.isFinite(minLng) ||
-    !Number.isFinite(minLat) ||
-    !Number.isFinite(maxLng) ||
-    !Number.isFinite(maxLat)
-  ) {
-    return null;
-  }
-
-  // Mapbox fitBounds with zero-area bounds fails or zooms unusably (e.g. all null → 0,0).
-  const lngSpan = maxLng - minLng;
-  const latSpan = maxLat - minLat;
-  if (lngSpan < 1e-10 && latSpan < 1e-10) {
-    return null;
-  }
-
-  return [
-    [minLng, minLat],
-    [maxLng, maxLat],
-  ];
-}
-
-type FlyToOnSelectProps = {
-  selectedProperty: Property | null;
-  zoomOnSelect?: number;
-};
-
-function FlyToOnSelect({ selectedProperty, zoomOnSelect = 13 }: FlyToOnSelectProps) {
+function FlyToOnSelect({ selectedProperty }: { selectedProperty: Property | null }) {
   const map = useMapbox();
 
   React.useEffect(() => {
@@ -62,10 +17,10 @@ function FlyToOnSelect({ selectedProperty, zoomOnSelect = 13 }: FlyToOnSelectPro
 
     map.flyTo({
       center: [selectedProperty.longitude, selectedProperty.latitude],
-      zoom: zoomOnSelect,
+      zoom: 13,
       essential: true,
     });
-  }, [map, selectedProperty, zoomOnSelect]);
+  }, [map, selectedProperty]);
 
   return null;
 }
@@ -90,20 +45,9 @@ export const PropertyPreviewMap = React.memo(function PropertyPreviewMap({
   setZoom,
 }: PropertyPreviewMapProps) {
   const [mapError, setMapError] = React.useState<string | null>(null);
-  // const bounds = React.useMemo(() => getBoundsFromProperties(properties), [properties]);
-  const defaultCenter = React.useMemo((): mapboxgl.LngLatLike => [-98, 39], []);
-
   return (
     <div className={cn(`relative size-full min-h-100`)}>
       <MapboxProvider
-        mapOptions={{
-          center: defaultCenter,
-          zoom: 3.5,
-          dragRotate: true,
-          scrollZoom: true,
-          boxZoom: true,
-        }}
-        // fitBounds={bounds ?? undefined}
         onMapError={(e) => {
           if (e && typeof e === "object" && "error" in e) {
             const wrapped = (e as { error?: unknown }).error;
@@ -136,7 +80,7 @@ export const PropertyPreviewMap = React.memo(function PropertyPreviewMap({
         />
         <BasisPreviewLayers basisGrids={basisGrids} />
         <MapSetter setZoom={setZoom} setMapBounds={setMapBounds} />
-        <FlyToOnSelect selectedProperty={selectedProperty} zoomOnSelect={13} />
+        <FlyToOnSelect selectedProperty={selectedProperty} />
       </MapboxProvider>
     </div>
   );

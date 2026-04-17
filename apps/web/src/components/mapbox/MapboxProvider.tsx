@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchBox } from "@mapbox/search-js-react";
 import { env } from "@gis-app/env/web";
@@ -12,32 +12,27 @@ const styles = {
 };
 
 export type MapboxProviderProps = {
-  mapOptions?: Omit<mapboxgl.MapOptions, "container" | "style">;
   controls?: {
     navigation?: boolean;
     fullscreen?: boolean;
     scale?: boolean;
     geolocate?: boolean;
   };
-  fitBounds?: mapboxgl.LngLatBoundsLike;
-  onMapReady?: (map: mapboxgl.Map) => void;
   onMapError?: (error: unknown) => void;
   children?: ReactNode;
   className?: string;
 };
 
 export function MapboxProvider({
-  mapOptions,
   controls = { navigation: true, fullscreen: true, scale: false, geolocate: false },
-  fitBounds,
-  onMapReady,
   onMapError,
   children,
 }: MapboxProviderProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [currentStyle, setCurrentStyle] = useState(styles.standard);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [isMapStyleLoaded, setIsMapStyleLoaded] = useState(false);
+  const defaultCenter = useMemo((): mapboxgl.LngLatLike => [-98, 39], []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -45,13 +40,16 @@ export function MapboxProvider({
     mapboxgl.accessToken = env.VITE_MAPBOX_TOKEN;
     const mapInstance = new mapboxgl.Map({
       container: containerRef.current,
-      style: currentStyle,
-      ...mapOptions,
+      style: styles.standard,
+      center: defaultCenter,
+      zoom: 3.5,
+      dragRotate: true,
+      scrollZoom: true,
+      boxZoom: true,
     });
 
     mapRef.current = mapInstance;
     setMap(mapInstance);
-    onMapReady?.(mapInstance);
 
     const onError = (e: unknown) => onMapError?.(e);
     mapInstance.on("error", onError);
@@ -72,17 +70,7 @@ export function MapboxProvider({
     });
     ro.observe(containerRef.current);
 
-    const maybeFitBounds = () => {
-      if (!fitBounds) return;
-      try {
-        mapInstance.fitBounds(fitBounds, { padding: 48, duration: 1500 });
-      } catch {
-        // Ignore fit errors when bounds are invalid.
-      }
-    };
-
     const onLoad = () => {
-      maybeFitBounds();
       mapInstance.resize();
       requestAnimationFrame(() => {
         mapInstance.resize();
@@ -90,10 +78,17 @@ export function MapboxProvider({
     };
 
     mapInstance.on("load", onLoad);
+    mapInstance.on("style.load", () => {
+      setIsMapStyleLoaded(true);
+    });
+    mapInstance.on("styledataloading", () => {
+      setIsMapStyleLoaded(false);
+    });
 
     return () => {
       mapInstance.off("load", onLoad);
       mapInstance.off("error", onError);
+      mapInstance.off("styledataloading", () => setIsMapStyleLoaded(false));
       mapInstance.remove();
       mapRef.current = null;
       setMap(null);
@@ -101,28 +96,13 @@ export function MapboxProvider({
     };
   }, [env.VITE_MAPBOX_TOKEN]);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-    if (!fitBounds) return;
-    const doFit = () => {
-      try {
-        mapRef.current?.fitBounds(fitBounds, { padding: 48, duration: 1500 });
-      } catch {
-        // Ignore fit errors when bounds are invalid.
-      }
-    };
-    doFit();
-  }, [fitBounds]);
-
-  useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.setStyle(currentStyle);
-    }
-  }, [currentStyle]);
-
   return (
     <div className={"relative w-full h-full flex flex-col gap-4"}>
-      {map ? <MapboxContext.Provider value={{ map }}>{children}</MapboxContext.Provider> : null}
+      {map ? (
+        <MapboxContext.Provider value={{ map, isMapStyleLoaded }}>
+          {children}
+        </MapboxContext.Provider>
+      ) : null}
       <div ref={containerRef} className="h-full w-full border" />
       <div className="absolute z-10 top-[10px] left-[10px] w-64">
         {map && (
@@ -147,7 +127,7 @@ export function MapboxProvider({
         )}
       </div>
       <div className="absolute z-10 bottom-[10px] left-[10px] w-64">
-        <Tabs defaultValue={currentStyle} onValueChange={(value) => setCurrentStyle(value)}>
+        <Tabs defaultValue={styles.standard} onValueChange={(value) => map?.setStyle(value)}>
           <TabsList>
             <TabsTrigger value={styles.standard}>Standard</TabsTrigger>
             <TabsTrigger value={styles.satellite}>Satellite</TabsTrigger>
