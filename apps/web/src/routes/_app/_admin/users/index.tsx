@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_app/_admin/users/")({
 function RouteComponent() {
   const { data, isLoading } = getUsers.useQuery();
   return (
-    <main className="max-w-7xl mx-auto border-x h-full">
+    <main className="max-w-7xl mx-auto sm:border-x h-full">
       <header>
         <div className="flex gap-2 items-center justify-between border-b px-3 py-2">
           <div className="flex gap-4 items-center flex-1">

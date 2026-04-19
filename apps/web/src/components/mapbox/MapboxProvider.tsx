@@ -103,8 +103,8 @@ export function MapboxProvider({
           {children}
         </MapboxContext.Provider>
       ) : null}
-      <div ref={containerRef} className="h-full w-full border" />
-      <div className="absolute z-10 top-[10px] left-[10px] w-64">
+      <div ref={containerRef} className="h-full w-full sm:border" />
+      <div className="absolute z-10 top-[8px] left-[8px] w-64">
         {map && (
           <SearchBox
             accessToken={env.VITE_MAPBOX_TOKEN}
@@ -126,7 +126,7 @@ export function MapboxProvider({
           />
         )}
       </div>
-      <div className="absolute z-10 bottom-[10px] left-[10px] w-64">
+      <div className="absolute z-10 bottom-[8px] left-[8px]">
         <Tabs defaultValue={styles.standard} onValueChange={(value) => map?.setStyle(value)}>
           <TabsList>
             <TabsTrigger value={styles.standard}>Standard</TabsTrigger>
