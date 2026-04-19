@@ -63,7 +63,7 @@ export const BasisPreviewLayers = React.memo(function BasisPreviewLayers({
   const isMapStyleLoaded = useMapboxIsMapStyleLoaded();
 
   React.useEffect(() => {
-    if (!map || !isMapStyleLoaded || !basisGrids) return;
+    if (!map || !isMapStyleLoaded) return;
 
     const ensureSourceAndLayers = () => {
       const geojson = basisGridsToGeoJSON(basisGrids ?? []);

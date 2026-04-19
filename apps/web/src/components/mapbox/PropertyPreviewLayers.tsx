@@ -1,6 +1,6 @@
 import * as React from "react";
 import mapboxgl from "mapbox-gl";
-import { useMapbox } from "./MapboxContext";
+import { useMapbox, useMapboxIsMapStyleLoaded } from "./MapboxContext";
 import type { Property } from "@/routes/_app/index";
 
 const SOURCE_ID = "properties-source";
@@ -57,9 +57,10 @@ export function PropertyPreviewLayers({
   selectedPinColor = "#f59e0b",
 }: PropertyPreviewLayersProps) {
   const map = useMapbox();
+  const isMapStyleLoaded = useMapboxIsMapStyleLoaded();
 
   React.useEffect(() => {
-    if (!map) return;
+    if (!map || !isMapStyleLoaded) return;
 
     const geojson = propertiesToGeoJSON(properties);
 
@@ -229,21 +230,15 @@ export function PropertyPreviewLayers({
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
 
-    // Ensure immediately if possible, otherwise wait for style.
-    if (map.isStyleLoaded()) {
+    if (isMapStyleLoaded) {
       ensureSourceAndLayers();
-    } else {
-      map.once("style.load", ensureSourceAndLayers);
     }
-
-    map.on("style.load", ensureSourceAndLayers);
     map.on("click", PINS_LAYER_ID, onPinsClick);
     map.on("mouseenter", PINS_LAYER_ID, onPinsMouseEnter);
     map.on("mousemove", PINS_LAYER_ID, onPinsMouseMove);
     map.on("mouseleave", PINS_LAYER_ID, onPinsMouseLeave);
 
     return () => {
-      map.off("style.load", ensureSourceAndLayers);
       map.off("click", PINS_LAYER_ID, onPinsClick);
       map.off("mouseenter", PINS_LAYER_ID, onPinsMouseEnter);
       map.off("mousemove", PINS_LAYER_ID, onPinsMouseMove);
@@ -260,6 +255,7 @@ export function PropertyPreviewLayers({
     selectedPinColor,
     selectedProperty,
     setSelectedProperty,
+    isMapStyleLoaded,
   ]);
 
   return null;
