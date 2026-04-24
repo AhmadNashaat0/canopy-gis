@@ -1,3 +1,13 @@
+import type { ExtractTablesWithRelations } from "drizzle-orm";
+import type { PgQueryResultHKT, PgTransaction } from "drizzle-orm/pg-core";
+import * as schema from "@gis-app/db/schema/index";
+
+export type Transaction = PgTransaction<
+  PgQueryResultHKT,
+  typeof schema,
+  ExtractTablesWithRelations<typeof schema>
+>;
+
 export type SfToGisLoaderOptions = {
   testMarket?: string;
   minTotalSf?: number;

@@ -10,6 +10,7 @@ import type {
   SaleEvidenceRow,
   SalesforceQueryResponse,
   SfPropertyRecord,
+  Transaction,
 } from "./types";
 
 const minTotalSf = 40000;
@@ -222,6 +223,12 @@ function normalizeSaleRow(
   };
 }
 
+async function deleteExistingLoaderData(dbConn: Transaction): Promise<void> {
+  // Delete child records first in case gisSalesEvidence has a foreign key to gisProperties.
+  await dbConn.delete(gisSalesEvidence);
+  await dbConn.delete(gisProperties);
+}
+
 async function geocodeAddress(address: string): Promise<GeocodeResult> {
   const clean = address.trim();
   if (!clean) return { lat: null, lon: null, confidence: 0, source: "none" };
@@ -241,7 +248,7 @@ async function geocodeAddress(address: string): Promise<GeocodeResult> {
   return { lat: Number(loc.lat), lon: Number(loc.lng), confidence, source: "google" };
 }
 
-async function upsertProperties(dbConn: typeof db, rows: PropertyRow[]): Promise<void> {
+async function upsertProperties(dbConn: Transaction, rows: PropertyRow[]): Promise<void> {
   if (!rows.length) return;
 
   const values = rows.map((r) => ({
@@ -295,8 +302,8 @@ async function upsertProperties(dbConn: typeof db, rows: PropertyRow[]): Promise
     });
 }
 
-async function geocodeMissingGeometry(minConfidence: number): Promise<number> {
-  const targets = await db
+async function geocodeMissingGeometry(dbConn: Transaction, minConfidence: number): Promise<number> {
+  const targets = await dbConn
     .select({ propertyId: gisProperties.propertyId, addressText: gisProperties.addressText })
     .from(gisProperties)
     .where(
@@ -321,7 +328,7 @@ async function geocodeMissingGeometry(minConfidence: number): Promise<number> {
           : "ok";
 
     if (geo.lat !== null && geo.lon !== null) {
-      await db
+      await dbConn
         .update(gisProperties)
         .set({
           latitude: geo.lat,
@@ -335,7 +342,7 @@ async function geocodeMissingGeometry(minConfidence: number): Promise<number> {
         .where(eq(gisProperties.propertyId, target.propertyId));
       updated += 1;
     } else {
-      await db
+      await dbConn
         .update(gisProperties)
         .set({
           geocodeConfidence: String(geo.confidence),
@@ -350,11 +357,11 @@ async function geocodeMissingGeometry(minConfidence: number): Promise<number> {
   return updated;
 }
 
-async function insertSalesEvidence(rows: SaleEvidenceRow[]): Promise<number> {
+async function insertSalesEvidence(dbConn: Transaction, rows: SaleEvidenceRow[]): Promise<number> {
   const propertyIds = Array.from(new Set(rows.map((r) => r.propertyId)));
   if (!propertyIds.length) return 0;
 
-  const props = await db
+  const props = await dbConn
     .select({
       propertyId: gisProperties.propertyId,
       latitude: gisProperties.latitude,
@@ -390,7 +397,7 @@ async function insertSalesEvidence(rows: SaleEvidenceRow[]): Promise<number> {
 
   if (!values.length) return 0;
 
-  await db.insert(gisSalesEvidence).values(values).onConflictDoNothing();
+  await dbConn.insert(gisSalesEvidence).values(values).onConflictDoNothing();
   return values.length;
 }
 
@@ -410,18 +417,12 @@ export async function runSfToGisLoader() {
     if (saleRow) saleRows.push(saleRow);
   }
 
-  for (let i = 0; i < propertyRows.length; i += batchSize) {
-    await upsertProperties(db, propertyRows.slice(i, i + batchSize));
-  }
-
-  const geocoded = await geocodeMissingGeometry(geocodeMinConfidence);
-  const salesEvidenceInserted = await insertSalesEvidence(saleRows);
-
-  return {
-    salesforceRecordsFetched: records.length,
-    propertiesUpserted: propertyRows.length,
-    propertiesGeocoded: geocoded,
-    salesEvidencePrepared: saleRows.length,
-    salesEvidenceInserted,
-  };
+  await db.transaction(async (tx) => {
+    await deleteExistingLoaderData(tx);
+    for (let i = 0; i < propertyRows.length; i += batchSize) {
+      await upsertProperties(tx, propertyRows.slice(i, i + batchSize));
+    }
+    await geocodeMissingGeometry(tx, geocodeMinConfidence);
+    await insertSalesEvidence(tx, saleRows);
+  });
 }
