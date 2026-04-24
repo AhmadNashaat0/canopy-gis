@@ -6,7 +6,7 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import { basisGridQueue, setupBasisJobs } from "./basis-grid/queue";
 import { basisLayerQueue } from "./basis-layer/queue";
-import { setupSfToDbSyncJobs } from "./salesforce-sync/queue";
+import { setupSfToDbSyncJobs, sfToDbSyncQueue } from "./salesforce-sync/queue";
 
 async function boot() {
   // Setup all scheduled jobs
@@ -19,7 +19,11 @@ async function boot() {
 
   const serverAdapter = new HonoAdapter(serveStatic);
   createBullBoard({
-    queues: [new BullMQAdapter(basisGridQueue as any), new BullMQAdapter(basisLayerQueue as any)],
+    queues: [
+      new BullMQAdapter(basisGridQueue as any),
+      new BullMQAdapter(basisLayerQueue as any),
+      new BullMQAdapter(sfToDbSyncQueue as any),
+    ],
     serverAdapter: serverAdapter,
   });
 
