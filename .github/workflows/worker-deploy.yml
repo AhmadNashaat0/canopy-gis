@@ -87,11 +87,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_PREFIX=${{ secrets.AWS_S3_PREFIX }}
           AWS_S3_PUBLIC_BASE_URL=${{ secrets.AWS_S3_PUBLIC_BASE_URL }}
-          SF_CLIENT_ID= ${{ secrets.SF_CLIENT_ID }}
-          SF_USERNAME= ${{ secrets.SF_USERNAME }}
-          SF_PRIVATE_KEY= ${{ secrets.SF_PRIVATE_KEY }}
+          SF_CLIENT_ID=${{ secrets.SF_CLIENT_ID }}
+          SF_USERNAME=${{ secrets.SF_USERNAME }}
+          SF_PRIVATE_KEY=${{ secrets.SF_PRIVATE_KEY }}
           SF_AUTH_URL=${{ secrets.SF_AUTH_URL }}
-          GOOGLE_MAPS_API_KEY= ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}"
           GITHUB_REPOSITORY_OWNER=${{ env.REPO_OWNER }}
           EOF
 
