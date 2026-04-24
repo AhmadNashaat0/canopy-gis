@@ -12,11 +12,17 @@ import type {
   SfPropertyRecord,
 } from "./types";
 
-const SF_PRIVATE_KEY = env.SF_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const minTotalSf = 40000;
 const saleLookbackMonths = 36;
 const geocodeMinConfidence = 0.6;
 const batchSize = 500;
+
+async function readPrivateKey(): Promise<string> {
+  if (!env.SF_PRIVATE_KEY_PATH) throw new Error("Set SF_PRIVATE_KEY or SF_PRIVATE_KEY_PATH");
+  const { readFile } = await import("node:fs/promises");
+  const key = await readFile(env.SF_PRIVATE_KEY_PATH, "utf8");
+  return key.replace(/\\n/g, "\n");
+}
 
 function salesforcePropertySoql(testMarket?: string): string {
   const marketFilter = testMarket ? `WHERE Market__c = '${testMarket.replace(/'/g, "\\'")}'` : "";
@@ -50,6 +56,7 @@ ${marketFilter}`;
 }
 
 async function salesforceJwtLogin(): Promise<SalesforceAuthResponse> {
+  const privateKey = await readPrivateKey();
   const now = Math.floor(Date.now() / 1000);
 
   const assertion = jwt.sign(
@@ -59,7 +66,7 @@ async function salesforceJwtLogin(): Promise<SalesforceAuthResponse> {
       aud: env.SF_AUTH_URL,
       exp: now + 300,
     },
-    SF_PRIVATE_KEY,
+    privateKey,
     { algorithm: "RS256" },
   );
 

@@ -20,7 +20,7 @@ export const env = createEnv({
     // Salesforce sync (JWT bearer)
     SF_CLIENT_ID: z.string().min(1),
     SF_USERNAME: z.string().min(1),
-    SF_PRIVATE_KEY: z.string(),
+    SF_PRIVATE_KEY_PATH: z.string(),
     SF_AUTH_URL: z.string().default("https://login.salesforce.com"),
 
     GOOGLE_MAPS_API_KEY: z.string(),

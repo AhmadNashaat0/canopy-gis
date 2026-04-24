@@ -71,7 +71,7 @@ jobs:
       - name: Normalize repo owner
         run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
-      - name: Create .env file
+      - name: Create .env and keys files
         run: |
           cat <<EOF > .env
           CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
@@ -89,19 +89,22 @@ jobs:
           AWS_S3_PUBLIC_BASE_URL=${{ secrets.AWS_S3_PUBLIC_BASE_URL }}
           SF_CLIENT_ID=${{ secrets.SF_CLIENT_ID }}
           SF_USERNAME=${{ secrets.SF_USERNAME }}
-          SF_PRIVATE_KEY=${{ secrets.SF_PRIVATE_KEY }}
+          SF_PRIVATE_KEY_PATH= ./sf-private-key.key
           SF_AUTH_URL=${{ secrets.SF_AUTH_URL }}
           GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}"
           GITHUB_REPOSITORY_OWNER=${{ env.REPO_OWNER }}
           EOF
 
+          cat <<EOF > sf-private-key.key
+          ${{ secrets.SF_PRIVATE_KEY }}
+          EOF
       - name: Copy files via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.prod.yml,.env"
+          source: "docker-compose.prod.yml, .env, sf-private-key.key"
           target: "~/canopy/gis/worker"
 
       - name: Pull images
