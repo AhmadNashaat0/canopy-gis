@@ -24,11 +24,13 @@
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
+    "jsonwebtoken": "^9.0.2",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@gis-app/config": "workspace:*",
     "@types/node": "catalog:",
+    "@types/jsonwebtoken": "^9.0.10",
     "tsdown": "^0.16.5",
     "tsx": "^4.7.0",
     "typescript": "^5"

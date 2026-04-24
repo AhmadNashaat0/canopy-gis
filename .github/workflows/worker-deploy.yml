@@ -87,6 +87,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_PREFIX=${{ secrets.AWS_S3_PREFIX }}
           AWS_S3_PUBLIC_BASE_URL=${{ secrets.AWS_S3_PUBLIC_BASE_URL }}
+          SF_CLIENT_ID= ${{ secrets.SF_CLIENT_ID }}
+          SF_USERNAME= ${{ secrets.SF_USERNAME }}
+          SF_PRIVATE_KEY= ${{ secrets.SF_PRIVATE_KEY }}
+          SF_AUTH_URL=${{ secrets.SF_AUTH_URL }}
+          GOOGLE_MAPS_API_KEY= ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GITHUB_REPOSITORY_OWNER=${{ env.REPO_OWNER }}
           EOF
 
@@ -117,7 +122,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ~/canopy/gis
+            cd ~/canopy/gis/worker
             docker compose -f docker-compose.prod.yml up -d --remove-orphans worker redis
             docker compose -f docker-compose.prod.yml ps
             docker image prune -af

@@ -6,10 +6,12 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import { basisGridQueue, setupBasisJobs } from "./basis-grid/queue";
 import { basisLayerQueue } from "./basis-layer/queue";
+import { setupSfToDbSyncJobs } from "./salesforce-sync/queue";
 
 async function boot() {
   // Setup all scheduled jobs
   await setupBasisJobs();
+  await setupSfToDbSyncJobs();
 
   console.log("Workers started successfully.");
 

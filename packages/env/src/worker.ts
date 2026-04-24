@@ -16,6 +16,14 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: z.string().min(1),
     AWS_S3_PREFIX: z.string().default("gis/basis-layers"),
     AWS_S3_PUBLIC_BASE_URL: z.string().optional(),
+
+    // Salesforce sync (JWT bearer)
+    SF_CLIENT_ID: z.string().min(1),
+    SF_USERNAME: z.string().min(1),
+    SF_PRIVATE_KEY: z.string(),
+    SF_AUTH_URL: z.string().default("https://login.salesforce.com"),
+
+    GOOGLE_MAPS_API_KEY: z.string(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
