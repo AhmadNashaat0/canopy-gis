@@ -12,7 +12,7 @@ export async function setupBasisJobs() {
     {},
     {
       repeat: {
-        pattern: "0 2 * * *",
+        pattern: "0 3 * * *",
       },
     },
   );

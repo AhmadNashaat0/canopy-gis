@@ -16,13 +16,25 @@ import type {
 const minTotalSf = 40000;
 const saleLookbackMonths = 36;
 const geocodeMinConfidence = 0.6;
-const batchSize = 500;
+const batchSize = 2000;
 
 async function readPrivateKey(): Promise<string> {
   if (!env.SF_PRIVATE_KEY_PATH) throw new Error("Set SF_PRIVATE_KEY or SF_PRIVATE_KEY_PATH");
   const { readFile } = await import("node:fs/promises");
   const key = await readFile(env.SF_PRIVATE_KEY_PATH, "utf8");
   return key.replace(/\\n/g, "\n");
+}
+
+function salesforceAddressToString(address: any): string {
+  return [
+    address.street,
+    address.city,
+    address.stateCode || address.state,
+    address.postalCode,
+    address.countryCode || address.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function salesforcePropertySoql(testMarket?: string): string {
@@ -314,11 +326,17 @@ async function geocodeMissingGeometry(dbConn: Transaction, minConfidence: number
       ),
     );
 
-  let updated = 0;
-  for (const target of targets) {
-    const address = (target.addressText ?? "").trim();
-    if (!address) continue;
+  console.log(`Geocoding ${targets.length} missing geometry addresses`);
 
+  let updated = 0;
+  let counter = 0;
+  for (const target of targets) {
+    counter += 1;
+    const address = (target.addressText ?? "").trim();
+    if (!address) {
+      console.log(`Geocoding - ${counter} / ${targets.length}: skipped`);
+      continue;
+    }
     const geo = await geocodeAddress(address);
     const status =
       geo.lat === null || geo.lon === null
@@ -326,7 +344,9 @@ async function geocodeMissingGeometry(dbConn: Transaction, minConfidence: number
         : geo.confidence < minConfidence
           ? "low_confidence"
           : "ok";
-
+    console.log(
+      `Geocoding - ${counter} / ${targets.length}: ${status} - ${geo.lat} - ${geo.lon} - ${address}`,
+    );
     if (geo.lat !== null && geo.lon !== null) {
       await dbConn
         .update(gisProperties)
@@ -402,13 +422,22 @@ async function insertSalesEvidence(dbConn: Transaction, rows: SaleEvidenceRow[])
 }
 
 export async function runSfToGisLoader() {
+  console.log("Starting sync from Salesforce to GIS DB...");
+
+  console.log("Authenticating with Salesforce...");
   const auth = await salesforceJwtLogin();
+
+  console.log("Fetching all properties from Salesforce...");
   const records = await fetchAllProperties(auth, salesforcePropertySoql());
+
+  console.log(`Fetched ${records.length} properties from Salesforce`);
 
   const propertyRows: PropertyRow[] = [];
   const saleRows: SaleEvidenceRow[] = [];
 
+  console.log("Normalizing properties and sales...");
   for (const rec of records) {
+    rec.Property_Address__c = salesforceAddressToString(rec.Property_Address__c);
     const propertyRow = normalizePropertyRow(rec, minTotalSf);
     if (!propertyRow) continue;
     propertyRows.push(propertyRow);
@@ -416,13 +445,21 @@ export async function runSfToGisLoader() {
     const saleRow = normalizeSaleRow(rec, propertyRow.avgSuiteSizeBucket, saleLookbackMonths);
     if (saleRow) saleRows.push(saleRow);
   }
+  console.log(`Normalized ${propertyRows.length} properties and ${saleRows.length} sales`);
 
   await db.transaction(async (tx) => {
+    console.log("Deleting existing loader data...");
     await deleteExistingLoaderData(tx);
+
+    console.log("Inserting properties...");
     for (let i = 0; i < propertyRows.length; i += batchSize) {
+      const end = Math.min(i + batchSize, propertyRows.length);
+      console.log(`Inserting properties: ${i + 1}-${end} of ${propertyRows.length}`);
       await upsertProperties(tx, propertyRows.slice(i, i + batchSize));
     }
+    console.log("Geocoding missing geometry...");
     await geocodeMissingGeometry(tx, geocodeMinConfidence);
+    console.log("Inserting sales...");
     await insertSalesEvidence(tx, saleRows);
   });
 }

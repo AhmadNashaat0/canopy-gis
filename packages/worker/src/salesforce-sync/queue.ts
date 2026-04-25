@@ -12,7 +12,7 @@ export async function setupSfToDbSyncJobs() {
     {},
     {
       repeat: {
-        pattern: "0 1 * * *",
+        pattern: "0 0 * * *",
       },
     },
   );
