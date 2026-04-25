@@ -174,6 +174,14 @@ export const gisBasisLayer = pgTable(
   ],
 );
 
+export const gisAddressCache = pgTable("gis_address_cache", {
+  address: text("address").primaryKey().notNull(),
+  latitude: doublePrecision("latitude").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
+  confidence: text("confidence"),
+  source: text("source"),
+});
+
 export const gisPropertiesRelations = relations(gisProperties, ({ many }) => ({
   gisSalesEvidences: many(gisSalesEvidence),
 }));

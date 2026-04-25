@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { db } from "@gis-app/db";
-import { gisProperties, gisSalesEvidence } from "@gis-app/db/schema/index";
+import { gisProperties, gisSalesEvidence, gisAddressCache } from "@gis-app/db/schema/index";
 import { env } from "@gis-app/env/worker";
 import type {
   SalesforceAuthResponse,
@@ -337,7 +337,37 @@ async function geocodeMissingGeometry(dbConn: Transaction, minConfidence: number
       console.log(`Geocoding - ${counter} / ${targets.length}: skipped`);
       continue;
     }
-    const geo = await geocodeAddress(address);
+
+    let geo: GeocodeResult;
+    const [cached] = await dbConn
+      .select()
+      .from(gisAddressCache)
+      .where(eq(gisAddressCache.address, address))
+      .limit(1);
+
+    if (cached) {
+      geo = {
+        lat: cached.latitude,
+        lon: cached.longitude,
+        confidence: Number(cached.confidence),
+        source: cached.source ?? "cache",
+      };
+    } else {
+      geo = await geocodeAddress(address);
+      if (geo.lat !== null && geo.lon !== null) {
+        await dbConn
+          .insert(gisAddressCache)
+          .values({
+            address,
+            latitude: geo.lat,
+            longitude: geo.lon,
+            confidence: String(geo.confidence),
+            source: geo.source,
+          })
+          .onConflictDoNothing();
+      }
+    }
+
     const status =
       geo.lat === null || geo.lon === null
         ? "failed"
@@ -345,7 +375,7 @@ async function geocodeMissingGeometry(dbConn: Transaction, minConfidence: number
           ? "low_confidence"
           : "ok";
     console.log(
-      `Geocoding - ${counter} / ${targets.length}: ${status} - ${geo.lat} - ${geo.lon} - ${address}`,
+      `Geocoding - ${counter} / ${targets.length}: ${status} - ${geo.lat} - ${geo.lon} - ${address}${cached ? " (cached)" : ""}`,
     );
     if (geo.lat !== null && geo.lon !== null) {
       await dbConn
