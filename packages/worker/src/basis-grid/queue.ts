@@ -26,8 +26,8 @@ export const basisWorker = new Worker(
     if (job.name === "create-basis-grid") {
       await runBasisGridPipeline({
         logger: async (message: string) => {
-          console.log(message); // Docker/container logs
-          await job.log(message); // BullMQ dashboard job logs
+          console.log(message);
+          await job.log(message);
         },
       });
       // await basisLayerQueue.add("run", {});

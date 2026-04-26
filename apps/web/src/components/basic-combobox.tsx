@@ -15,7 +15,9 @@ export function BasicCombobox({
 }: React.ComponentProps<typeof Combobox> & {
   placeholder?: string;
   className?: string;
+  listClassName?: string;
   showTrigger?: boolean;
+  showNoneIfExists?: boolean;
 }) {
   return (
     <Combobox
@@ -36,7 +38,7 @@ export function BasicCombobox({
         className={cn("h-8", props.className)}
         showTrigger={props.showTrigger}
       />
-      <ComboboxContent>
+      <ComboboxContent className={props.listClassName}>
         <ComboboxEmpty>No items found.</ComboboxEmpty>
         <ComboboxGroup>
           <ComboboxLabel>{props.placeholder}</ComboboxLabel>
@@ -46,11 +48,11 @@ export function BasicCombobox({
                 <ComboboxItem key={item} value={item}>
                   {item}
                 </ComboboxItem>
-              ) : (
+              ) : props.showNoneIfExists ? (
                 <ComboboxItem key="null-item" value="None">
                   None
                 </ComboboxItem>
-              )
+              ) : null
             }
           </ComboboxList>
         </ComboboxGroup>

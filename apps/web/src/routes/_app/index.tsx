@@ -88,6 +88,7 @@ function MainRoute() {
         buildingClass: selectedBuildingClass,
         suiteSize: selectedSuiteSize,
         page,
+        size: 2000,
         maxLat: mapBounds?.maxLat,
         minLat: mapBounds?.minLat,
         maxLon: mapBounds?.maxLng,
@@ -211,6 +212,7 @@ function MainRoute() {
               <div className="flex">
                 <BasicCombobox
                   items={filters?.marketList}
+                  listClassName="min-w-40"
                   placeholder="market"
                   value={selectedMarket}
                   onValueChange={(v) => {

@@ -8,7 +8,7 @@ export const sfToDbSyncQueue = new Queue(queueName, { connection });
 
 export async function setupSfToDbSyncJobs() {
   await sfToDbSyncQueue.add(
-    "daily-run",
+    "sync-from-sf-to-db",
     {},
     {
       repeat: {
@@ -23,8 +23,13 @@ export const sfToDbSyncWorker = new Worker(
   queueName,
   async (job) => {
     console.log(`Job ${job.name} started`);
-    if (job.name === "run") {
-      await runSfToGisLoader();
+    if (job.name === "sync-from-sf-to-db") {
+      await runSfToGisLoader({
+        logger: async (message: string) => {
+          console.log(message);
+          await job.log(message);
+        },
+      });
     }
   },
   { connection },
