@@ -8,7 +8,7 @@ export const basisGridQueue = new Queue(queueName, { connection });
 
 export async function setupBasisJobs() {
   await basisGridQueue.add(
-    "daily-run",
+    "create-basis-grid",
     {},
     {
       repeat: {
@@ -23,8 +23,13 @@ export const basisWorker = new Worker(
   queueName,
   async (job) => {
     console.log(`Job ${job.name} started`);
-    if (job.name === "daily-run") {
-      await runBasisGridPipeline({ logger: job.log });
+    if (job.name === "create-basis-grid") {
+      await runBasisGridPipeline({
+        logger: async (message: string) => {
+          console.log(message); // Docker/container logs
+          await job.log(message); // BullMQ dashboard job logs
+        },
+      });
       // await basisLayerQueue.add("run", {});
     }
   },

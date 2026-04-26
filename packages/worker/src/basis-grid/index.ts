@@ -13,11 +13,14 @@ export async function runBasisGridPipeline({
   let processedRows = 0;
   const batchSize = 2000;
 
+  logger("Loading markets...");
   const [markets] = await db
     .select({ marketList: sql<string[]>`array_agg(distinct market)` })
     .from(gisProperties);
+  logger(`Loaded markets: ${markets?.marketList.length} markets`);
 
   for (const market of markets?.marketList ?? []) {
+    if (!market) continue;
     logger(`Running basis grid pipeline for market ${market}...`);
     const sourceRows = await loadSourceEvidence({ market: market });
     const computedRows = computeBasisGrid({ data: sourceRows, logger });
