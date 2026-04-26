@@ -27,7 +27,7 @@ export async function runBasisGridPipeline({
 
     if (computedRows.length === 0) {
       logger(`No basis grid rows for market ${market}.`);
-      return { inserted: 0 };
+      continue;
     }
 
     await db.transaction(async (tx) => {
