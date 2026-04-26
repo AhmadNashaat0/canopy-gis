@@ -3,8 +3,12 @@ import { gisBasisGrid, gisProperties, gisSalesEvidence } from "@gis-app/db/schem
 import type { BasisGridOutput, SourceEvidenceRow } from "./types";
 import { db } from "@gis-app/db";
 
-export async function runBasisGridPipeline(): Promise<{ inserted: number }> {
-  console.log("Stating basis grid pipeline...");
+export async function runBasisGridPipeline({
+  logger = console.log,
+}: {
+  logger?: any;
+}): Promise<{ inserted: number }> {
+  logger("Stating basis grid pipeline...");
 
   let processedRows = 0;
   const batchSize = 2000;
@@ -14,26 +18,26 @@ export async function runBasisGridPipeline(): Promise<{ inserted: number }> {
     .from(gisProperties);
 
   for (const market of markets?.marketList ?? []) {
-    console.log(`Running basis grid pipeline for market ${market}...`);
+    logger(`Running basis grid pipeline for market ${market}...`);
     const sourceRows = await loadSourceEvidence({ market: market });
-    const computedRows = computeBasisGrid(sourceRows);
+    const computedRows = computeBasisGrid({ data: sourceRows, logger });
 
     if (computedRows.length === 0) {
-      console.log(`No basis grid rows for market ${market}.`);
+      logger(`No basis grid rows for market ${market}.`);
       return { inserted: 0 };
     }
 
     await db.transaction(async (tx) => {
       await tx.delete(gisBasisGrid).where(eq(gisBasisGrid.market, market));
       for (let i = 0; i < computedRows.length; i += batchSize) {
-        console.log(`Inserting: ${i}/${computedRows.length}`);
+        logger(`Inserting: ${i}/${computedRows.length}`);
         const chunk = computedRows.slice(i, i + batchSize);
         await tx.insert(gisBasisGrid).values(chunk);
       }
     });
 
     processedRows += computedRows.length;
-    console.log(`Processed ${computedRows.length} basis grid rows for market ${market}.`);
+    logger(`Processed ${computedRows.length} basis grid rows for market ${market}.`);
   }
 
   return { inserted: processedRows };
@@ -41,10 +45,12 @@ export async function runBasisGridPipeline(): Promise<{ inserted: number }> {
 
 export async function loadSourceEvidence({
   market,
+  logger = console.log,
 }: {
   market?: string;
+  logger?: any;
 }): Promise<SourceEvidenceRow[]> {
-  console.log("Loading source evidence...");
+  logger("Loading source evidence...");
   const rows = await db
     .select({
       property: {
@@ -109,12 +115,18 @@ export async function loadSourceEvidence({
           ),
     );
 
-  console.log(`Loaded ${rows.length} source evidence rows`);
+  logger(`Loaded ${rows.length} source evidence rows`);
   return rows;
 }
 
-export function computeBasisGrid(sourceRows: SourceEvidenceRow[]): BasisGridOutput[] {
-  console.log("Computing basis grid...");
+export function computeBasisGrid({
+  data: sourceRows,
+  logger,
+}: {
+  data: SourceEvidenceRow[];
+  logger: any;
+}): BasisGridOutput[] {
+  logger("Computing basis grid...");
 
   const MAX_SALE_AGE_MONTHS = 36;
   const TIME_HALF_LIFE_MONTHS = 18.0;
@@ -173,15 +185,15 @@ export function computeBasisGrid(sourceRows: SourceEvidenceRow[]): BasisGridOutp
     maxLon,
     CELL_METERS,
   );
-  console.log("Computed grid centers:", latCenters.length, lonCenters.length);
+  logger("Computed grid centers:", latCenters.length, lonCenters.length);
 
   const market = sales[0]?.market ?? "UNKNOWN";
   const outputs: BasisGridOutput[] = [];
 
   for (const suiteBucket of ["medium", "large"]) {
-    console.log(`Computing basis grid for suite size bucket ${suiteBucket}...`);
+    logger(`Computing basis grid for suite size bucket ${suiteBucket}...`);
     for (const cls of ["A", "B", "C"]) {
-      console.log(`  Computing basis grid for building class ${cls}...`);
+      logger(`  Computing basis grid for building class ${cls}...`);
 
       const seg = sales.filter((s) => s.suiteSizeBucket === suiteBucket && s.buildingClass === cls);
 
@@ -269,7 +281,7 @@ export function computeBasisGrid(sourceRows: SourceEvidenceRow[]): BasisGridOutp
       }
     }
   }
-  console.log("Computed basis grid rows:", outputs.length);
+  logger("Computed basis grid rows:", outputs.length);
   return outputs;
 }
 

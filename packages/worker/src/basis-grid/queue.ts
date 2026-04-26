@@ -24,7 +24,7 @@ export const basisWorker = new Worker(
   async (job) => {
     console.log(`Job ${job.name} started`);
     if (job.name === "daily-run") {
-      await runBasisGridPipeline();
+      await runBasisGridPipeline({ logger: job.log });
       // await basisLayerQueue.add("run", {});
     }
   },
