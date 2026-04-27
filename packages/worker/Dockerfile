@@ -27,10 +27,9 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache libc6-compat
-
-# Map over everything required but keep image completely minimal
 COPY --from=builder /app .
-
 WORKDIR /app/packages/worker
+RUN --mount=type=secret,id=SF_PRIVATE_KEY \
+    echo /run/secrets/SF_PRIVATE_KEY > sf-private-key.key
 EXPOSE 4000
 CMD ["npm", "run", "start"]

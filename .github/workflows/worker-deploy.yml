@@ -55,6 +55,8 @@ jobs:
           context: .
           file: packages/worker/Dockerfile
           push: true
+          secrets: |
+            "SF_PRIVATE_KEY=${{ secrets.SF_PRIVATE_KEY }}"
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -89,22 +91,19 @@ jobs:
           AWS_S3_PUBLIC_BASE_URL=${{ secrets.AWS_S3_PUBLIC_BASE_URL }}
           SF_CLIENT_ID=${{ secrets.SF_CLIENT_ID }}
           SF_USERNAME=${{ secrets.SF_USERNAME }}
-          SF_PRIVATE_KEY_PATH= ./sf-private-key.key
+          SF_PRIVATE_KEY_PATH=./sf-private-key.key
           SF_AUTH_URL=${{ secrets.SF_AUTH_URL }}
           GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}"
           GITHUB_REPOSITORY_OWNER=${{ env.REPO_OWNER }}
           EOF
-
-          cat <<EOF > sf-private-key.key
-          ${{ secrets.SF_PRIVATE_KEY }}
-          EOF
+          
       - name: Copy files via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.prod.yml, .env, sf-private-key.key"
+          source: "docker-compose.prod.yml, .env"
           target: "~/canopy/gis/worker"
 
       - name: Pull images
