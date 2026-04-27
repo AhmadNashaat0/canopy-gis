@@ -30,6 +30,6 @@ RUN apk add --no-cache libc6-compat
 COPY --from=builder /app .
 WORKDIR /app/packages/worker
 RUN --mount=type=secret,id=SF_PRIVATE_KEY \
-    echo /run/secrets/SF_PRIVATE_KEY > sf-private-key.key
+    cat /run/secrets/SF_PRIVATE_KEY > sf-private-key.key
 EXPOSE 4000
 CMD ["npm", "run", "start"]
